@@ -11,7 +11,7 @@ const MOCK_MARINAS = [
 ];
 
 export default function MarinaMap() {
-  const { t } = useTranslation();
+  const { t } = useTranslation('map');
   const [selectedMarina, setSelectedMarina] = useState<any>(null);
   const [marinas, setMarinas] = useState(MOCK_MARINAS);
 

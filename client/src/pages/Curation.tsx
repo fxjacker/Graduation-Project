@@ -9,7 +9,7 @@ const CURATION_DATA = [
 ];
 
 export default function Curation() {
-  const { t } = useTranslation();
+  const { t } = useTranslation('curation');
 
   return (
     // h-full과 overflow-y-auto로 휴대폰에서 스크롤이 부드럽게 작동하도록 설정

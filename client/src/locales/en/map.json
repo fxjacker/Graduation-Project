@@ -1,0 +1,13 @@
+{
+  "sidebar_title": "Marina List",
+  "search_placeholder": "Search marinas...",
+  "filter_depth": "Depth Filter",
+  "weather_title": "Real-time Weather",
+  "wind_speed": "Wind",
+  "wave_height": "Waves",
+  "tide_state": "Tide",
+  "infra_title": "Infrastructure Status",
+  "power_supply": "Power",
+  "water_supply": "Water",
+  "detail_label": "Marina Detail"
+}

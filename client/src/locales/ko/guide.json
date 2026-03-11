@@ -1,0 +1,13 @@
+{
+  "page_title": "7단계 스마트 입항 가이드",
+  "page_hint": "모든 단계를 완료하여 사법 리스크를 방지하세요.",
+  "step": "단계",
+  "status_done": "완료",
+  "btn_submit_report": "최종 입항 보고서 제출",
+  "step1_title": "영해 진입 전 사전 보고",
+  "step1_desc": "24시간 전 입항 예정 보고서 제출 여부",
+  "step1_danger": "미보고 시 영해 침범 간주",
+  "step2_title": "검역 신고 (Quarantine)",
+  "step2_desc": "노란색 기(Q-flag) 게양 및 검역 승인 대기",
+  "step2_danger": "질병 관리법 위반 주의"
+}

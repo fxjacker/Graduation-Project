@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 export default function MainLanding() {
-  const { t } = useTranslation();
+  const { t } = useTranslation('main');
 
   return (
     // 전체 페이지를 감싸는 컨테이너: h-full과 overflow-y-auto로 스크롤 가능하게 설정

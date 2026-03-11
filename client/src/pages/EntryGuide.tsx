@@ -14,7 +14,7 @@ const ENTRY_STEPS = [
 ];
 
 export default function EntryGuide() {
-  const { t } = useTranslation();
+  const { t } = useTranslation('guide');
   
   // 사용자가 완료한 단계의 ID를 저장하는 배열
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);

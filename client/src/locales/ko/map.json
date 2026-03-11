@@ -1,0 +1,13 @@
+{
+  "sidebar_title": "마리나 목록",
+  "search_placeholder": "마리나 검색...",
+  "filter_depth": "최소 수심 설정",
+  "weather_title": "실시간 기상 정보",
+  "wind_speed": "풍속",
+  "wave_height": "파고",
+  "tide_state": "물때",
+  "infra_title": "정박 인프라 현황",
+  "power_supply": "전력 공급",
+  "water_supply": "상수도",
+  "detail_label": "상세 정보"
+}
