@@ -10,20 +10,18 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#003366] text-white p-4 flex items-center justify-between sticky top-0 z-[1000]">
+    <header className="bg-[#003366] text-white p-4 flex items-center justify-between sticky top-0 z-[1000] w-full">
       <div className="flex items-center gap-4">
-        {/* 메뉴 아이콘 - 나중에 사이드바 토글용 */}
-        <button className="p-2 hover:bg-white/10 rounded-lg">
+        <button className="p-2 hover:bg-white/10 rounded-lg md:hidden">
           <Menu size={24} />
         </button>
-        {/* 로고 및 서비스 명 */}
         <Link to="/" className="text-xl font-bold tracking-tight">
-          {t('header_title')}
+          {/* JSON에 nav_home이 있으니 이걸로 로고 제목을 씁니다 */}
+          {t('nav_home')} MARINA
         </Link>
       </div>
 
-      {/* 상단 네비게이션 */}
-      <nav className="hidden md:flex gap-6 font-medium">
+      <nav className="hidden md:flex gap-8 font-medium">
         <Link to="/map" className="hover:text-[#FFCC00] transition-colors">
           {t('nav_map')}
         </Link>
@@ -35,12 +33,11 @@ export default function Header() {
         </Link>
       </nav>
 
-      {/* KR/EN 토글 버튼 */}
       <button 
         onClick={toggleLang}
-        className="bg-[#FFCC00] text-[#003366] px-4 py-1.5 rounded-lg font-bold hover:scale-105 transition-transform"
+        className="bg-[#FFCC00] text-[#003366] px-4 py-1.5 rounded-lg font-bold hover:scale-105 transition-transform text-sm"
       >
-        {i18n.language.toUpperCase()}
+        {i18n.language === 'ko' ? 'English' : '한국어'}
       </button>
     </header>
   );
