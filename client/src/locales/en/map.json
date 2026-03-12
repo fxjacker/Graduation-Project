@@ -2,6 +2,7 @@
   "sidebar_title": "Marina List",
   "search_placeholder": "Search marinas...",
   "filter_depth": "Depth Filter",
+  "detail_label": "Marina Detail",
   "weather_title": "Real-time Weather",
   "wind_speed": "Wind",
   "wave_height": "Waves",
@@ -9,5 +10,6 @@
   "infra_title": "Infrastructure Status",
   "power_supply": "Power",
   "water_supply": "Water",
-  "detail_label": "Marina Detail"
+  "marina_yeosu": "Yeosu Marina",
+  "marina_busan": "Busan Suyeongman Yacht Center"
 }

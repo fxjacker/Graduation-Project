@@ -4,10 +4,10 @@ import { Search, Wind, Waves, Thermometer, Zap, Droplet, X, Droplets, Anchor } f
 import { useTranslation } from 'react-i18next';
 import 'leaflet/dist/leaflet.css';
 
-// 🚩 [BACKEND] 정윤석님: 실제 DB 데이터 연동 시 필드명(name, desc 등)의 다국어 처리 방안 논의 필요
+// 🚩 [데이터 수정] name 대신 nameKey를 사용하도록 변경했습니다.
 const MOCK_MARINAS = [
-  { id: 1, name: '여수 마리나', lat: 34.746, lng: 127.731, depth: 5.2, maxVessel: 45, desc: '전남 여수에 위치한 프리미엄 마리나.' },
-  { id: 2, name: '부산 수영만 요트경기장', lat: 35.161, lng: 129.138, depth: 6.5, maxVessel: 60, desc: '국제 마리나.' },
+  { id: 1, nameKey: 'marina_yeosu', lat: 34.746, lng: 127.731, depth: 5.2, maxVessel: 45, desc: '전남 여수에 위치한 프리미엄 마리나.' },
+  { id: 2, nameKey: 'marina_busan', lat: 35.161, lng: 129.138, depth: 6.5, maxVessel: 60, desc: '국제 마리나.' },
 ];
 
 export default function MarinaMap() {
@@ -15,8 +15,8 @@ export default function MarinaMap() {
   const [selectedMarina, setSelectedMarina] = useState<any>(null);
   const [marinas, setMarinas] = useState(MOCK_MARINAS);
 
-  // 🚩 [BACKEND] 정윤석님: 서버 API 연동 지점
   useEffect(() => {
+    // 🚩 [BACKEND] 정윤석님: 서버 API 연동 지점
     // axios.get('/api/marinas').then(res => setMarinas(res.data));
   }, []);
 
@@ -52,7 +52,8 @@ export default function MarinaMap() {
               onClick={() => setSelectedMarina(m)}
               className={`p-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all bg-white shadow-sm hover:border-[#003366] ${selectedMarina?.id === m.id ? 'border-[#003366] ring-2 ring-[#003366]/20' : 'border-transparent'}`}
             >
-              <h3 className="font-bold text-[#003366] text-sm md:text-lg">{m.name}</h3>
+              {/* 🚩 [수정] m.name 대신 t(m.nameKey)를 사용합니다. */}
+              <h3 className="font-bold text-[#003366] text-sm md:text-lg">{t(m.nameKey)}</h3>
               <div className="flex gap-2 mt-1 md:mt-2">
                 <span className="bg-blue-50 text-blue-700 text-[9px] md:text-[11px] font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 border border-blue-100">
                   <Droplets size={10} /> {m.depth}m
@@ -85,7 +86,8 @@ export default function MarinaMap() {
               <X size={24} />
             </button>
             <span className="text-yellow-400 text-[10px] md:text-xs font-bold uppercase tracking-widest block mb-1">{t('detail_label')}</span>
-            <h2 className="text-xl md:text-2xl font-bold">{selectedMarina.name}</h2>
+            {/* 🚩 [수정] selectedMarina.name 대신 t(selectedMarina.nameKey)를 사용합니다. */}
+            <h2 className="text-xl md:text-2xl font-bold">{t(selectedMarina.nameKey)}</h2>
           </div>
 
           <div className="p-5 md:p-6 space-y-6 md:space-y-8 overflow-y-auto">
