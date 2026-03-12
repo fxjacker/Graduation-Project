@@ -3,8 +3,10 @@
   "page_subtitle": "Pleasure beyond sailing, we recommend the perfect experience.",
   "tag_romance": "Romance",
   "tag_night": "Night View",
+  "tag_classic": "Classic",
   "tag_family": "Family",
-  "share_title": "Share Your Marina Experience",
-  "share_subtitle": "Updating anchorage info for global sailors.",
-  "btn_write": "Write a Story"
+  "tour_1_title": "Yeosu Night Sea Yacht Tour",
+  "tour_1_loc": "Yeosu Marina",
+  "tour_2_title": "Suyeongman Yacht Center Classic Course",
+  "tour_2_loc": "Busan Suyeongman"
 }

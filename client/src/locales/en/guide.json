@@ -1,6 +1,6 @@
 {
   "page_title": "7-Step Smart Entry Guide",
-  "page_hint": "Complete all steps to prevent legal risks.",
+  "page_hint": "Complete all steps to prevent unexpected legal risks.",
   "step": "Step",
   "status_done": "Done",
   "btn_submit_report": "Submit Final Report",
@@ -9,5 +9,20 @@
   "step1_danger": "Non-reporting may be seen as intrusion",
   "step2_title": "Quarantine Declaration",
   "step2_desc": "Hoisting Q-flag & waiting for approval",
-  "step2_danger": "Watch for health law violations"
+  "step2_danger": "Watch for health law violations",
+  "step3_title": "Immigration Clearance",
+  "step3_desc": "Passport and visa inspection for crew",
+  "step3_danger": "Prevention of illegal entry",
+  "step4_title": "Customs Declaration",
+  "step4_desc": "Declaring vessel cargo and personal items",
+  "step4_danger": "Preventing customs law violations",
+  "step5_title": "Berth Reservation & Entry",
+  "step5_desc": "Communication with control center",
+  "step5_danger": "Watch for collisions and safety",
+  "step6_title": "Administrative Registration",
+  "step6_desc": "Visiting office and submitting documents",
+  "step6_danger": "Compliance with port facility rules",
+  "step7_title": "Final Local Regulations",
+  "step7_desc": "Checking speed limits and no-fishing zones",
+  "step7_danger": "Blocking unintentional illegal acts"
 }

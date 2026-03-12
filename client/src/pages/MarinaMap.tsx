@@ -4,7 +4,7 @@ import { Search, Wind, Waves, Thermometer, Zap, Droplet, X, Droplets, Anchor } f
 import { useTranslation } from 'react-i18next';
 import 'leaflet/dist/leaflet.css';
 
-// 🚩 [BACKEND] 정윤석님: 나중에 이 Mock 데이터 대신 서버에서 가져온 실제 DB 데이터를 여기에 넣어야 합니다.
+// 🚩 [BACKEND] 정윤석님: 실제 DB 데이터 연동 시 필드명(name, desc 등)의 다국어 처리 방안 논의 필요
 const MOCK_MARINAS = [
   { id: 1, name: '여수 마리나', lat: 34.746, lng: 127.731, depth: 5.2, maxVessel: 45, desc: '전남 여수에 위치한 프리미엄 마리나.' },
   { id: 2, name: '부산 수영만 요트경기장', lat: 35.161, lng: 129.138, depth: 6.5, maxVessel: 60, desc: '국제 마리나.' },
@@ -15,24 +15,22 @@ export default function MarinaMap() {
   const [selectedMarina, setSelectedMarina] = useState<any>(null);
   const [marinas, setMarinas] = useState(MOCK_MARINAS);
 
-  // 🚩 [BACKEND] 정윤석님: 페이지 로딩 시 서버로부터 마리나 전체 목록을 가져오는 로직이 들어갈 곳입니다.
+  // 🚩 [BACKEND] 정윤석님: 서버 API 연동 지점
   useEffect(() => {
     // axios.get('/api/marinas').then(res => setMarinas(res.data));
   }, []);
 
   return (
-    // 전체 레이아웃: 모바일은 세로(col), PC는 가로(row). h-full로 공백 제거.
     <div className="relative flex flex-col md:flex-row h-full w-full overflow-hidden bg-white">
       
       {/* 1. 사이드바 (리스트 및 검색) */}
       <aside className="z-[1001] w-full h-[35%] md:h-full md:w-80 bg-white shadow-2xl flex flex-col border-r border-b md:border-b-0">
         <div className="p-4 md:p-5 border-b bg-[#003366] text-white">
           <h2 className="text-lg md:text-xl font-bold flex items-center gap-2 mb-3 md:mb-4">
-            <Anchor className="text-yellow-400" size={20} /> {t('marina_list', '마리나 목록')}
+            <Anchor className="text-yellow-400" size={20} /> {t('sidebar_title')}
           </h2>
           
           <div className="relative">
-            {/* 🚩 [BACKEND] 정윤석님: 검색어 입력 시 서버에 검색 요청을 보내거나 프론트에서 필터링하는 로직 필요 */}
             <input 
               type="text" 
               placeholder={t('search_placeholder')} 
@@ -42,14 +40,11 @@ export default function MarinaMap() {
           </div>
         </div>
         
-        {/* 필터 설정 */}
         <div className="p-3 md:p-4 bg-gray-50 border-b text-[10px] md:text-xs space-y-2 md:space-y-3">
-          <label className="block mb-1 text-gray-600 font-bold uppercase tracking-wider">최소 수심 설정 (Depth Filter)</label>
-          {/* 🚩 [BACKEND] 정윤석님: 슬라이더 조절 시 해당 수심 이상의 마리나만 필터링해서 서버에 요청 */}
+          <label className="block mb-1 text-gray-600 font-bold uppercase tracking-wider">{t('filter_depth')}</label>
           <input type="range" className="w-full accent-[#003366] cursor-pointer" />
         </div>
 
-        {/* 마리나 목록 리스트 */}
         <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-2 md:space-y-3 bg-gray-50/50">
           {marinas.map(m => (
             <div 
@@ -68,7 +63,7 @@ export default function MarinaMap() {
         </div>
       </aside>
 
-      {/* 2. 메인 지도 (Leaflet) */}
+      {/* 2. 메인 지도 영역 */}
       <div className="flex-1 w-full h-[65%] md:h-full relative">
         <MapContainer center={[36.5, 127.5]} zoom={7} className="h-full w-full">
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -82,36 +77,32 @@ export default function MarinaMap() {
         </MapContainer>
       </div>
 
-      {/* 3. 오른쪽 상세 정보 사이드바 (상세 정보창) */}
+      {/* 3. 오른쪽 상세 정보 사이드바 */}
       {selectedMarina && (
         <div className="fixed md:absolute inset-0 md:inset-y-0 md:right-0 w-full md:w-96 bg-white z-[2000] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
           <div className="bg-[#003366] text-white p-5 md:p-6 relative">
             <button onClick={() => setSelectedMarina(null)} className="absolute top-5 right-5 p-1.5 hover:bg-white/20 rounded-full transition-colors">
               <X size={24} />
             </button>
-            <span className="text-yellow-400 text-[10px] md:text-xs font-bold uppercase tracking-widest block mb-1">Marina Detail</span>
+            <span className="text-yellow-400 text-[10px] md:text-xs font-bold uppercase tracking-widest block mb-1">{t('detail_label')}</span>
             <h2 className="text-xl md:text-2xl font-bold">{selectedMarina.name}</h2>
           </div>
 
           <div className="p-5 md:p-6 space-y-6 md:space-y-8 overflow-y-auto">
-            {/* 기상 정보 섹션 */}
             <section>
-              <h4 className="flex items-center gap-2 font-bold mb-3 md:mb-4 text-gray-800 border-l-4 border-blue-500 pl-3">실시간 기상 정보</h4>
-              {/* 🚩 [BACKEND] 정윤석님: 기상청 API 혹은 서버 API를 통해 실시간 풍속/파고 데이터를 가져와 뿌려야 함 */}
+              <h4 className="flex items-center gap-2 font-bold mb-3 md:mb-4 text-gray-800 border-l-4 border-blue-500 pl-3">{t('weather_title')}</h4>
               <div className="grid grid-cols-3 gap-2 md:gap-3">
-                <WeatherCard icon={<Wind size={18}/>} label="풍속" value="8.5m/s" colorClass="bg-blue-50 text-blue-500 border-blue-100" />
-                <WeatherCard icon={<Waves size={18}/>} label="파고" value="1.2m" colorClass="bg-cyan-50 text-cyan-500 border-cyan-100" />
-                <WeatherCard icon={<Thermometer size={18}/>} label="물때" value="만조" colorClass="bg-emerald-50 text-emerald-500 border-emerald-100" />
+                <WeatherCard icon={<Wind size={18}/>} label={t('wind_speed')} value="8.5m/s" colorClass="bg-blue-50 text-blue-500 border-blue-100" />
+                <WeatherCard icon={<Waves size={18}/>} label={t('wave_height')} value="1.2m" colorClass="bg-cyan-50 text-cyan-500 border-cyan-100" />
+                <WeatherCard icon={<Thermometer size={18}/>} label={t('tide_state')} value="만조" colorClass="bg-emerald-50 text-emerald-500 border-emerald-100" />
               </div>
             </section>
 
-            {/* 인프라 섹션 */}
             <section>
-              <h4 className="font-bold mb-3 md:mb-4 text-gray-800 border-l-4 border-green-500 pl-3">정박 인프라 현황</h4>
-              {/* 🚩 [BACKEND] 정윤석님: 해당 마리나의 시설물 가동 상태(DB)를 가져오는 지점 */}
+              <h4 className="font-bold mb-3 md:mb-4 text-gray-800 border-l-4 border-green-500 pl-3">{t('infra_title')}</h4>
               <div className="grid grid-cols-2 gap-2 md:gap-3">
-                <FacilityButton icon={<Zap size={16}/>} label="전력 공급" colorClass="bg-green-50 text-green-700 border-green-200" />
-                <FacilityButton icon={<Droplet size={16}/>} label="상수도" colorClass="bg-blue-50 text-blue-700 border-blue-200" />
+                <FacilityButton icon={<Zap size={16}/>} label={t('power_supply')} colorClass="bg-green-50 text-green-700 border-green-200" />
+                <FacilityButton icon={<Droplet size={16}/>} label={t('water_supply')} colorClass="bg-blue-50 text-blue-700 border-blue-200" />
               </div>
             </section>
           </div>
@@ -121,7 +112,6 @@ export default function MarinaMap() {
   );
 }
 
-// 재사용 컴포넌트들
 function WeatherCard({ icon, label, value, colorClass }: any) {
   return (
     <div className={`p-2 md:p-4 rounded-xl md:rounded-2xl border ${colorClass} flex flex-col items-center gap-1 shadow-sm`}>

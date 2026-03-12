@@ -1,6 +1,6 @@
 {
   "page_title": "7단계 스마트 입항 가이드",
-  "page_hint": "모든 단계를 완료하여 사법 리스크를 방지하세요.",
+  "page_hint": "모든 단계를 완료하여 예기치 못한 사법 리스크를 방지하세요.",
   "step": "단계",
   "status_done": "완료",
   "btn_submit_report": "최종 입항 보고서 제출",
@@ -9,5 +9,20 @@
   "step1_danger": "미보고 시 영해 침범 간주",
   "step2_title": "검역 신고 (Quarantine)",
   "step2_desc": "노란색 기(Q-flag) 게양 및 검역 승인 대기",
-  "step2_danger": "질병 관리법 위반 주의"
+  "step2_danger": "질병 관리법 위반 주의",
+  "step3_title": "출입국 심사 (Immigration)",
+  "step3_desc": "선원 여권 및 비자 심사 진행",
+  "step3_danger": "밀입국 방지 및 신원 확인",
+  "step4_title": "세관 신고 (Customs)",
+  "step4_desc": "선박 적재 물품 및 개인 소지품 신고",
+  "step4_danger": "관세법 위반 사법 리스크 방지",
+  "step5_title": "마리나 선석 예약 및 진입",
+  "step5_desc": "관제 센터 교신 및 지정 선석 이동",
+  "step5_danger": "충돌 및 안전 사고 주의",
+  "step6_title": "시설 이용 행정 등록",
+  "step6_desc": "마리나 사무소 방문 및 서류 제출",
+  "step6_danger": "항만 시설 이용 규칙 준수",
+  "step7_title": "국내 법규 최종 숙지",
+  "step7_desc": "속도 제한 및 낚시 금지 구역 확인",
+  "step7_danger": "의도치 않은 불법 행위 차단"
 }
