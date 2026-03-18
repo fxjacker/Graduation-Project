@@ -7,7 +7,7 @@ import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// 조류 화살표 레이어 기능
+// 조류 화살표 레이어 기능 (데이터 누락 방지 로직 포함)
 function TidalCurrentLayer() {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
@@ -17,13 +17,24 @@ function TidalCurrentLayer() {
 
   useEffect(() => {
     async function fetchTidalCurrents() {
-      const { data } = await supabase.from('tidal_current_observations').select('*');
-      if (data) setCurrents(data);
+      // 먼바다 데이터까지 충분히 가져오기 위해 limit 설정
+      const { data } = await supabase
+        .from('tidal_current_observations')
+        .select('*')
+        .limit(5000);
+      
+      if (data) {
+        // 유효한 좌표값만 필터링하여 저장
+        const validData = data.filter(c => 
+          !isNaN(parseFloat(c.latitude)) && !isNaN(parseFloat(c.longitude))
+        );
+        setCurrents(validData);
+      }
     }
     fetchTidalCurrents();
   }, []);
 
-  if (zoom < 7) return null;
+  if (zoom < 8) return null;
 
   const createArrowIcon = (direction: number, speed: number) => {
     const color = speed > 2.0 ? '#ef4444' : speed > 1.0 ? '#f97316' : '#f59e0b';
@@ -33,13 +44,23 @@ function TidalCurrentLayer() {
           <path d="M50 10 L50 90 M50 10 L30 40 M50 10 L70 40" stroke="${color}" stroke-width="14" fill="none" stroke-linecap="round"/>
         </svg>
       </div>`;
-    return new L.DivIcon({ html: iconHtml, className: 'tidal-icon', iconSize: [20, 20] });
+    return new L.DivIcon({ 
+      html: iconHtml, 
+      className: 'tidal-icon', 
+      iconSize: [20, 20],
+      iconAnchor: [10, 10] // 화살표 중심점 고정
+    });
   };
 
   return (
     <>
       {currents.map((c, i) => (
-        <Marker key={`current-${i}`} position={[parseFloat(c.latitude), parseFloat(c.longitude)]} icon={createArrowIcon(c.current_direction, c.current_speed)} interactive={false} />
+        <Marker 
+          key={`current-${c.idx || i}`} 
+          position={[parseFloat(c.latitude), parseFloat(c.longitude)]} 
+          icon={createArrowIcon(c.current_direction, c.current_speed)} 
+          interactive={false} 
+        />
       ))}
     </>
   );
@@ -124,7 +145,7 @@ export default function MarinaMap() {
       {/* 사이드바 열기 버튼 */}
       {!isSidebarOpen && (
         <div className="absolute top-[90px] left-[10px] z-[1002]">
-          <button onClick={() => setIsSidebarOpen(true)} className="w-[34px] h-[34px] bg-white text-[#003366] rounded-[4px] border-2 border-black/20 shadow-md flex items-center justify-center"><Menu size={18} /></button>
+          <button onClick={() => setIsSidebarOpen(true)} className="w-[34px] h-[34px] bg-white text-[#003366] rounded-[4px] border-2 border-black/20 shadow-md flex items-center justify-center hover:bg-gray-100"><Menu size={18} /></button>
         </div>
       )}
 
@@ -149,11 +170,11 @@ export default function MarinaMap() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
           {filteredMarinas.map(m => (
-            <div key={m.id} onClick={() => handleMarinaClick(m)} className={`p-4 border rounded-2xl cursor-pointer ${selectedMarina?.id === m.id ? 'border-[#003366] bg-blue-50' : 'border-gray-100'}`}>
+            <div key={m.id} onClick={() => handleMarinaClick(m)} className={`p-4 border rounded-2xl cursor-pointer transition-all hover:bg-blue-50/50 ${selectedMarina?.id === m.id ? 'border-[#003366] bg-blue-50' : 'border-gray-100'}`}>
               <h3 className="font-bold text-gray-700">{t(m.id, m.name)}</h3>
-              <p className="text-[11px] text-gray-400 mt-1">{t(`ADDR_${m.id}`, m.address)}</p>
+              <p className="text-[11px] text-gray-400 mt-1 line-clamp-1">{t(`ADDR_${m.id}`, m.address)}</p>
             </div>
           ))}
         </div>
