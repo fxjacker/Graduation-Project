@@ -1,107 +1,141 @@
-import { Star, MapPin, Coffee, Utensils, Camera, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Star, MapPin, Coffee, Utensils, Camera, ChevronRight, Anchor, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-// 🚩 [데이터 수정] title -> titleKey, location -> locationKey로 변경했습니다.
-const CURATION_DATA = [
-  { 
-    id: 1, 
-    titleKey: 'tour_1_title', 
-    locationKey: 'tour_1_loc', 
-    rating: 4.9, 
-    tags: ['romance', 'night'], 
-    img: 'https://images.unsplash.com/photo-1540944030791-4d5140bbad6e?auto=format&fit=crop&q=80&w=400' 
-  },
-  { 
-    id: 2, 
-    titleKey: 'tour_2_title', 
-    locationKey: 'tour_2_loc', 
-    rating: 4.8, 
-    tags: ['classic', 'family'], 
-    img: 'https://images.unsplash.com/photo-1567675411943-957215f6932c?auto=format&fit=crop&q=80&w=400' 
-  },
-];
+import { supabase } from '../supabaseClient';
 
 export default function Curation() {
   const { t } = useTranslation(['curation', 'common']);
+  const [marinas, setMarinas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    async function fetchMarinas() {
+      const { data } = await supabase
+        .from('marina_list')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (data) setMarinas(data);
+      setLoading(false);
+    }
+    fetchMarinas();
+  }, []);
+
+  const filteredMarinas = useMemo(() => {
+    return marinas.filter(m => 
+      m.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      m.address.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [marinas, searchTerm]);
+
+  if (loading) return <div className="h-full w-full flex items-center justify-center text-[#003366] font-bold font-sans">Loading Premium Experience...</div>;
 
   return (
-    <div className="h-full w-full bg-white overflow-y-auto">
-      <div className="max-w-7xl mx-auto px-4 py-8 md:px-8 md:py-12">
+    <div className="h-full w-full bg-[#f8fafc] overflow-y-auto font-sans">
+      <div className="max-w-7xl mx-auto px-4 py-12 md:px-8">
         
-        {/* 1. 헤더 섹션 */}
-        <div className="mb-10 md:mb-16">
-          <span className="text-blue-500 font-bold text-xs md:text-sm uppercase tracking-[0.2em] mb-2 block">Premium Experience</span>
-          <h1 className="text-2xl md:text-4xl font-black text-[#003366] mb-3">
-            {t('curation:page_title')}
+        <div className="mb-12 text-center md:text-left">
+          <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
+            <div className="h-[1px] w-8 bg-blue-500"></div>
+            <span className="text-blue-500 font-bold text-xs uppercase tracking-[0.3em]">Lifestyle Curation</span>
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-[#003366] mb-6">
+            전국 39개 마리나 라이프스타일 가이드
           </h1>
-          <p className="text-gray-500 text-sm md:text-lg leading-relaxed max-w-2xl">
-            {t('curation:page_subtitle')}
-          </p>
+          
+          <div className="relative max-w-xl mt-8">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-12 pr-12 py-4 border-none bg-white shadow-lg rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none text-gray-700"
+              placeholder="찾으시는 마리나 이름이나 지역을 입력하세요..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm("")} className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600">
+                <X size={18} />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* 2. 메인 큐레이션 카드 그리드 */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-20">
-          {CURATION_DATA.map(item => (
-            <div key={item.id} className="group bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer">
-              <div className="relative h-52 md:h-64">
-                <img src={item.img} alt={t(`curation:${item.titleKey}`)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                  {item.tags.map(tag => (
-                    <span key={tag} className="bg-white/90 backdrop-blur-md text-[#003366] text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
-                      #{t(`curation:tag_${tag}`, tag)}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-24">
+          {filteredMarinas.length > 0 ? (
+            filteredMarinas.map((marina) => (
+              <div key={marina.id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col">
+                <div className="relative h-64 overflow-hidden">
+                  <img 
+                    src={marina.recommend_image || `https://images.unsplash.com/photo-1567675411943-957215f6932c?q=80&w=600&auto=format&fit=crop`} 
+                    alt={marina.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                  />
+                  <div className="absolute top-5 left-5">
+                    <span className="bg-white/90 backdrop-blur-md text-[#003366] text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg border border-white/50">
+                      DEPTH {marina.depth || '0.0'}M
                     </span>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  {/* 🚩 [수정] t() 함수를 사용해 제목을 번역합니다. */}
-                  <h3 className="font-bold text-lg md:text-xl text-gray-800 group-hover:text-[#003366] transition-colors">
-                    {t(`curation:${item.titleKey}`)}
-                  </h3>
-                  <div className="flex items-center gap-1 text-yellow-500 bg-yellow-50 px-2 py-1 rounded-lg">
-                    <Star size={14} fill="currentColor" />
-                    <span className="text-xs font-black">{item.rating}</span>
+                  </div>
+                  <div className="absolute bottom-5 right-5 flex items-center gap-1.5 bg-[#003366]/80 backdrop-blur-md text-white px-3 py-1.5 rounded-xl border border-white/20">
+                    <Star size={12} fill="#fbbf24" className="text-yellow-400" />
+                    <span className="text-xs font-bold">4.8</span>
                   </div>
                 </div>
                 
-                {/* 🚩 [수정] t() 함수를 사용해 위치를 번역합니다. */}
-                <p className="text-sm text-gray-400 flex items-center gap-1 mb-6">
-                  <MapPin size={14} className="text-blue-400" /> 
-                  {t(`curation:${item.locationKey}`)}
-                </p>
-                
-                <div className="flex justify-between items-center pt-5 border-t border-gray-50">
-                   <div className="flex gap-4 text-gray-300">
-                    <Coffee size={20} className="hover:text-amber-600 transition-colors" /> 
-                    <Utensils size={20} className="hover:text-orange-600 transition-colors" /> 
-                    <Camera size={20} className="hover:text-blue-600 transition-colors" />
-                   </div>
-                   <button className="text-[#003366] font-extrabold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {t('common:btn_more')} <ChevronRight size={18} />
-                   </button>
+                <div className="p-8 flex-1 flex flex-col">
+                  <div className="mb-4">
+                    <h3 className="font-black text-xl md:text-2xl text-gray-800 group-hover:text-blue-600 transition-colors mb-2">
+                      {marina.name}
+                    </h3>
+                    <p className="text-sm text-gray-400 flex items-start gap-1.5">
+                      <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" /> 
+                      <span className="line-clamp-1">{marina.address}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex gap-5 text-gray-300 mb-8 mt-auto pt-6 border-t border-gray-50">
+                    <Coffee size={20} className="hover:text-amber-600 transition-all" /> 
+                    <Utensils size={20} className="hover:text-orange-600 transition-all" /> 
+                    <Camera size={20} className="hover:text-blue-600 transition-all" />
+                  </div>
+                  
+                  <button 
+                    onClick={() => marina.recommend_link && window.open(marina.recommend_link, '_blank')}
+                    className="w-full bg-[#003366] text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-700 transition-all active:scale-95 shadow-lg group/btn"
+                  >
+                    {t('common:btn_more')} 
+                    <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                  </button>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="col-span-full py-20 text-center">
+              <p className="text-gray-400 text-lg">검색 결과와 일치하는 마리나가 없습니다. ⚓️</p>
             </div>
-          ))}
+          )}
         </section>
 
-        {/* 3. 하단 배너 섹션 */}
-        <section className="bg-[#003366] rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between text-white shadow-2xl gap-8 mb-10">
-          <div className="text-center md:text-left">
-            <h2 className="text-xl md:text-2xl font-bold mb-3">{t('curation:share_title')}</h2>
-            <p className="text-blue-200/70 text-sm md:text-base">
-              {t('curation:share_subtitle')}
-            </p>
+        <section className="bg-gradient-to-br from-[#003366] to-[#001a33] rounded-[3rem] p-10 md:p-20 text-center text-white shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-10 opacity-10">
+            <Anchor size={200} />
           </div>
-          <button className="w-full md:w-auto bg-yellow-400 text-[#003366] px-8 py-4 rounded-2xl font-black hover:bg-yellow-300 transition-all shadow-lg active:scale-95">
-            {t('curation:btn_write')}
-          </button>
+          <div className="relative z-10">
+            <h2 className="text-2xl md:text-4xl font-black mb-6 italic">Explore All 39 Global Marinas</h2>
+            <p className="text-blue-200/70 text-sm md:text-lg mb-10 max-w-xl mx-auto">
+              대한민국 전역의 마리나 데이터를 완벽하게 구축했습니다.<br/>
+              이제 당신의 완벽한 항해 시나리오를 시작해 보세요.
+            </p>
+            <button className="bg-yellow-400 text-[#003366] px-12 py-5 rounded-2xl font-black hover:bg-yellow-300 transition-all shadow-xl hover:-translate-y-1">
+              마리나 제보하기
+            </button>
+          </div>
         </section>
 
-        <footer className="text-center py-10 text-gray-300 text-xs">
-          © 2026 Global Marina Hub Curation Service.
+        <footer className="text-center py-16 text-gray-300 text-xs tracking-widest font-medium">
+          © 2026 GLOBAL MARINA HUB. ALL RIGHTS RESERVED.
         </footer>
       </div>
     </div>
