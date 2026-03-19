@@ -57,6 +57,7 @@ export default function Curation() {
             <span className="text-blue-500 font-bold text-xs uppercase tracking-[0.3em]">Lifestyle Curation</span>
           </div>
           
+          {/* 대제목 번역 적용: curation.json의 page_title 참조 */}
           <h1 className="text-3xl md:text-5xl font-black text-[#003366] mb-6 leading-tight">
             {t('curation:page_title')}
           </h1>
@@ -73,7 +74,7 @@ export default function Curation() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            {/* 검색어가 있을 때만 나타나는 초기화(X) 버튼 */}
+            {/* 검색어 초기화 버튼 */}
             {searchTerm && (
               <button 
                 onClick={() => setSearchTerm("")} 
@@ -93,10 +94,10 @@ export default function Curation() {
               
               return (
                 <div key={marina.id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col">
-                  {/* 카드 상단: 이미지 및 기술 사양(수심) 정보 */}
+                  {/* 카드 상단: 이미지 및 기술 사양 정보 */}
                   <div className="relative h-64 overflow-hidden">
                     <img 
-                      src={marina.recommend_image || `https://images.unsplash.com/photo-1567675411943-957215f6932c?q=80&w=600&auto=format&fit=crop&sig=${idNum}`} 
+                      src={marina.recommend_image || `https://images.unsplash.com/photo-1567675411943-957215f6932c?auto=format&fit=crop&q=80&w=800&sig=${idNum}`} 
                       alt={marina.name} 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     />
@@ -105,18 +106,18 @@ export default function Curation() {
                         DEPTH {marina.depth || '0.0'}M
                       </span>
                     </div>
-                    {/* 별점 시뮬레이션 영역 */}
+                    {/* 별점 영역 */}
                     <div className="absolute bottom-5 right-5 flex items-center gap-1.5 bg-[#003366]/80 backdrop-blur-md text-white px-3 py-1.5 rounded-xl border border-white/20">
                       <Star size={12} fill="#fbbf24" className="text-yellow-400" />
                       <span className="text-xs font-bold">4.8</span>
                     </div>
                   </div>
                   
-                  {/* 카드 하단: 다국어가 적용된 마리나 이름 및 상세 주소 정보 */}
+                  {/* 카드 하단: 다국어가 적용된 마리나 정보 */}
                   <div className="p-8 flex-1 flex flex-col">
                     <div className="mb-4">
                       <h3 className="font-black text-xl md:text-2xl text-gray-800 group-hover:text-blue-600 transition-colors mb-2">
-                        {/* 다국어 핵심 로직: 한국어일 땐 DB 직접 참조, 영문일 땐 언어팩 참조 */}
+                        {/* 언어 설정에 따른 조건부 텍스트 출력 */}
                         {i18n.language === 'ko' ? marina.name : t(`curation:marina_${idNum}_name`)}
                       </h3>
                       <p className="text-sm text-gray-400 flex items-start gap-1.5">
@@ -127,14 +128,14 @@ export default function Curation() {
                       </p>
                     </div>
 
-                    {/* 편의 시설 아이콘 영역 */}
+                    {/* 편의 시설 아이콘 */}
                     <div className="flex gap-5 text-gray-300 mb-8 mt-auto pt-6 border-t border-gray-50">
                       <Coffee size={20} className="hover:text-amber-600 transition-all" /> 
                       <Utensils size={20} className="hover:text-orange-600 transition-all" /> 
                       <Camera size={20} className="hover:text-blue-600 transition-all" />
                     </div>
                     
-                    {/* [기능 6] 외부 링크 연동: 버튼 클릭 시 네이버 지도 검색 페이지로 이동 */}
+                    {/* [기능 6] 상세 보기 버튼: 네이버 지도 링크 연동 */}
                     <button 
                       onClick={() => marina.recommend_link && window.open(marina.recommend_link, '_blank')}
                       className="w-full bg-[#003366] text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-700 transition-all active:scale-95 shadow-lg group/btn"
@@ -147,14 +148,14 @@ export default function Curation() {
               );
             })
           ) : (
-            // 검색 결과가 없을 때 보여줄 예외 처리 화면
+            // 검색 결과 없음 UI
             <div className="col-span-full py-20 text-center">
               <p className="text-gray-400 text-lg font-sans">{t('curation:no_result')}</p>
             </div>
           )}
         </section>
 
-        {/* [기능 7] 하단 커뮤니티 유도 배너 섹션 */}
+        {/* [기능 7] 하단 배너 섹션 */}
         <section className="bg-gradient-to-br from-[#003366] to-[#001a33] rounded-[3rem] p-10 md:p-20 text-center text-white shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-10 opacity-10">
             <Anchor size={200} />
