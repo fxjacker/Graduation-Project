@@ -94,12 +94,10 @@ export default function Curation() {
                   {/* 기능: DB에 등록된 고유 이미지 출력 및 로딩 실패 대응 */}
                   <div className="relative h-64 overflow-hidden bg-gray-200">
                     <img 
-                      /* DB의 recommend_image 컬럼 데이터를 직접 사용합니다. */
                       src={marina.recommend_image} 
                       alt={currentName} 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                       onError={(e) => {
-                        /* 만약 DB URL에 문제가 생길 경우를 대비한 백업 이미지 */
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop";
                       }}
                     />
@@ -128,10 +126,29 @@ export default function Curation() {
                       </p>
                     </div>
 
+                    {/* 기능: 마리나 주변 카페, 식당, 명소 구글 지도 자동 검색 아이콘 */}
                     <div className="flex gap-5 text-gray-300 mb-8 mt-auto pt-6 border-t border-gray-50">
-                      <Coffee size={20} className="hover:text-amber-600 transition-all" /> 
-                      <Utensils size={20} className="hover:text-orange-600 transition-all" /> 
-                      <Camera size={20} className="hover:text-blue-600 transition-all" />
+                      <button 
+                        onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent(currentName + " 카페")}`, '_blank')}
+                        className="hover:text-amber-600 transition-all hover:scale-110 active:scale-95"
+                        title="주변 카페 검색"
+                      >
+                        <Coffee size={20} />
+                      </button>
+                      <button 
+                        onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent(currentName + " 맛집")}`, '_blank')}
+                        className="hover:text-orange-600 transition-all hover:scale-110 active:scale-95"
+                        title="주변 맛집 검색"
+                      >
+                        <Utensils size={20} />
+                      </button>
+                      <button 
+                        onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent(currentName + " 관광명소")}`, '_blank')}
+                        className="hover:text-blue-600 transition-all hover:scale-110 active:scale-95"
+                        title="주변 명소 검색"
+                      >
+                        <Camera size={20} />
+                      </button>
                     </div>
                     
                     {/* 기능: 상세 페이지 외부 링크 연결 */}
