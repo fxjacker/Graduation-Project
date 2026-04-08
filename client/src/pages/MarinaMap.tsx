@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, ZoomControl, useMap, useMapEvents, Popup } from 'react-leaflet';
+import { useState, useEffect, useMemo, Fragment } from 'react'; // Fragment 추가
+import { MapContainer, TileLayer, Marker, ZoomControl, useMap, useMapEvents, Popup, Circle } from 'react-leaflet'; // Circle 추가
 import { X, Wind, Thermometer, Droplets, Anchor, Menu, Search, ExternalLink, Waves, Navigation, ArrowLeftRight, RotateCcw, Clock, MapPin, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
@@ -44,7 +44,7 @@ function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }
   return null;
 }
 
-/* 3. 실시간 선박 위치 레이어 */
+/* 3. 실시간 선박 위치 레이어 + [신규] 거리 동심원(Range Rings) */
 function RealtimeShipLayer() {
   const [ships, setShips] = useState<any[]>([]);
   useEffect(() => {
@@ -58,11 +58,38 @@ function RealtimeShipLayer() {
     const interval = setInterval(fetchShips, 10000);
     return () => clearInterval(interval);
   }, []);
+
   const createShipIcon = (course: number) => {
     const iconHtml = `<div style="transform: rotate(${course}deg);"><svg viewBox="0 0 24 24" width="24" height="24" fill="#ef4444" stroke="white"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" /></svg></div>`;
     return new L.DivIcon({ html: iconHtml, className: 'ship-icon', iconSize: [24, 24], iconAnchor: [12, 12] });
   };
-  return <>{ships.map((ship) => (<Marker key={ship.mmsi} position={[ship.latitude, ship.longitude]} icon={createShipIcon(ship.true_heading || 0)}><Popup><div className="text-xs"><b>MMSI: {ship.mmsi}</b><br/>속도: {ship.speed_over_ground}kn</div></Popup></Marker>))}</>;
+
+  return (
+    <>
+      {ships.map((ship) => (
+        <Fragment key={ship.mmsi}>
+          {/* 선박 마커 */}
+          <Marker position={[ship.latitude, ship.longitude]} icon={createShipIcon(ship.true_heading || 0)}>
+            <Popup><div className="text-xs"><b>MMSI: {ship.mmsi}</b><br/>속도: {ship.speed_over_ground}kn</div></Popup>
+          </Marker>
+          
+          {/* [추가] 선박 주변 거리 동심원 (Range Rings) - 항해 시스템 스타일 */}
+          <Circle 
+            center={[ship.latitude, ship.longitude]} 
+            radius={1000} // 1km 반경
+            pathOptions={{ color: '#334155', weight: 1, fillOpacity: 0.05, dashArray: '5, 10' }} 
+            interactive={false}
+          />
+          <Circle 
+            center={[ship.latitude, ship.longitude]} 
+            radius={2000} // 2km 반경
+            pathOptions={{ color: '#94a3b8', weight: 0.5, fillOpacity: 0, dashArray: '2, 5' }} 
+            interactive={false}
+          />
+        </Fragment>
+      ))}
+    </>
+  );
 }
 
 export default function MarinaMap() {
@@ -76,7 +103,6 @@ export default function MarinaMap() {
   const [mapConfig, setMapConfig] = useState({ center: [36.5, 127.5] as [number, number], zoom: 7 });
   const [minDepth, setMinDepth] = useState(0);
 
-  // --- 네비게이션 상태 관리 ---
   const [isNavMode, setIsNavMode] = useState(false); 
   const [navStart, setNavStart] = useState<any>(null);
   const [navEnd, setNavEnd] = useState<any>(null);
@@ -146,7 +172,14 @@ export default function MarinaMap() {
     <div className="relative w-full h-full overflow-hidden bg-[#f1f5f9]">
       <div className="absolute inset-0 w-full h-full z-0">
         <MapContainer center={mapConfig.center} zoom={mapConfig.zoom} className="h-full w-full" zoomControl={false}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {/* [수정] 기본 레이어 + 무료 해도 레이어(OpenSeaMap) 중첩 */}
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" zIndex={1} />
+          <TileLayer 
+            url="https://tiles.openseamap.org/seamap/{z}/{x}/{y}.png" 
+            zIndex={10} 
+            opacity={0.8}
+          />
+
           <ZoomControl position="topleft" /> 
           <ChangeView center={mapConfig.center} zoom={mapConfig.zoom} />
           <TidalCurrentLayer />
@@ -156,7 +189,6 @@ export default function MarinaMap() {
         </MapContainer>
       </div>
 
-      {/* --- 우측 상단: 네비게이션 버튼 (마리나 상세창이 닫혀있을 때만 노출) --- */}
       {!selectedMarina && (
         <div className="absolute top-5 right-5 z-[3000]">
           <button 
@@ -169,7 +201,6 @@ export default function MarinaMap() {
         </div>
       )}
 
-      {/* 우측: 네비게이션 계획 패널 */}
       {isNavMode && !isRouteDone && (
         <div className="absolute top-24 right-5 z-[2500] w-80 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl p-6 border border-white animate-in slide-in-from-right">
           <div className="mb-6"><h4 className="font-black text-[#003366] text-lg uppercase tracking-tighter">Route Planning</h4></div>
@@ -187,7 +218,6 @@ export default function MarinaMap() {
         </div>
       )}
 
-      {/* 왼쪽 사이드바 */}
       <aside className={`absolute top-0 left-0 z-[1005] w-80 h-full bg-white shadow-2xl flex flex-col transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 bg-[#003366] text-white flex justify-between items-center shadow-md font-bold">
           <span className="flex items-center gap-2"><Anchor className="text-yellow-400" size={22} /> {t('sidebar_title')}</span>
@@ -201,14 +231,12 @@ export default function MarinaMap() {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
-          {filteredMarinas.map(m => (<div key={m.id} onClick={() => handleMarinaClick(m)} className={`p-4 border rounded-2xl cursor-pointer transition-all hover:bg-blue-50/50 ${selectedMarina?.id === m.id ? 'border-[#003366] bg-blue-50' : 'border-gray-100'}`}><h3 className="font-bold text-gray-700">{t(m.id, m.name)}</h3><p className="text-[11px] text-gray-400 mt-1 line-clamp-1">{t(`ADDR_${m.id}`, m.address)}</p></div>))}
+          {filteredMarinas.map(m => (<div key={m.id} onClick={() => handleMarinaClick(m)} className={`p-4 border-2 rounded-2xl cursor-pointer transition-all hover:bg-blue-50/50 ${selectedMarina?.id === m.id ? 'border-blue-500 bg-blue-50' : 'border-gray-100'}`}><h3 className="font-bold text-gray-700">{t(m.id, m.name)}</h3><p className="text-[11px] text-gray-400 mt-1 line-clamp-1">{t(`ADDR_${m.id}`, m.address)}</p></div>))}
         </div>
       </aside>
 
-      {/* 하단 종합 항해 브리핑 대시보드 */}
       {isRouteDone && <RouteAnalysisChart data={routeAnalysisData} onClose={clearNav} startNode={navStart} endNode={navEnd} />}
 
-      {/* 우측 마리나 상세 정보 팝업창 (네비게이션 모드가 아닐 때만 노출) */}
       {!isNavMode && !isRouteDone && selectedMarina && (
         <div className="fixed md:absolute inset-y-0 right-0 w-full md:w-[380px] bg-white z-[2000] shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
           <div className="bg-[#003366] text-white p-6 relative">
@@ -232,7 +260,6 @@ export default function MarinaMap() {
         </div>
       )}
 
-      {/* 지능형 지도 비서 MapChat */}
       <MapChat />
 
       {!isSidebarOpen && (
