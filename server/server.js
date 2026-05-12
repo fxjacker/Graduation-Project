@@ -45,7 +45,7 @@ const apiLimiter = rateLimit({
     // 제한 윈도우 크기를 1분(60,000 밀리초)으로 설정
     windowMs: 1 * 60 * 1000, 
     // 지정된 윈도우 내 단일 IP당 최대 허용 요청 수를 50회로 제한
-    max: 50, 
+    max: 100, 
     // 임계치 초과 시 클라이언트에게 반환될 HTTP 429 오류 메시지
     message: '요청 횟수를 초과하였습니다. 잠시 후 다시 시도해 주십시오.',
     // RateLimit-* 표준 HTTP 헤더를 응답에 포함하도록 설정
@@ -78,7 +78,8 @@ function connectAIS() {
         //const boundingBoxes = [[[32.0, 124.0], [39.0, 132.0]]];
         //const boundingBoxes = [[[-90, -180], [90, 180]]];
         //const boundingBoxes = [[[30.0, 120.0], [43.0, 135.0]]];
-        const boundingBoxes = [[[20.0, 115.0], [45.0, 145.0]]];
+        const boundingBoxes = [[[32.0, 124.0], [39.0, 132.0]]];
+        //const boundingBoxes = [[[20.0, 115.0], [45.0, 145.0]]];
         //const boundingBoxes = [[[32.0, 124.0], [39.0, 132.0]]];
         //const boundingBoxes = [[[30.0, 120.0], [43.0, 135.0]]];
         // 불필요한 패킷을 필터링하고 위치 보고(PositionReport) 데이터만 수신하도록 설정
@@ -140,6 +141,31 @@ function connectAIS() {
 
 // 서버 구동 시 초기 WebSocket 연결 프로세스 실행
 connectAIS();
+
+// ============================================================================
+// 🧹 [초강력 유령선 청소 스케줄러] - 3분 미응답 시 즉시 삭제 (1분 주기 실행)
+// ============================================================================
+
+setInterval(() => {
+    const now = new Date();
+    let deletedCount = 0;
+
+    for (const [mmsi, shipData] of shipCache.entries()) {
+        const lastUpdated = new Date(shipData.updated_at);
+        const diffMinutes = (now - lastUpdated) / (1000 * 60);
+
+        // 🚨 기준 대폭 강화: 15분 -> 3분 (3분 동안 위치 업데이트 없으면 바로 삭제)
+        if (diffMinutes > 5) {
+            shipCache.delete(mmsi);
+            deletedCount++;
+        }
+    }
+
+    // 삭제된 배가 있든 없든, 터미널에 현재 상태를 1분마다 무조건 출력해서 확인시켜 줍니다.
+    console.log(`🧹 [캐시 상태] 방금 ${deletedCount}척 지움! (현재 지도에 쏴주는 배: 총 ${shipCache.size}척)`);
+    
+// 실행 주기도 10분 -> 1분(60,000 밀리초)으로 단축
+}, 5 * 60 * 1000);
 
 // 클라이언트가 실시간 선박 위치 데이터를 요청할 때 응답을 처리하는 RESTful 엔드포인트
 app.get('/api/realtime-ships', (req, res) => {
