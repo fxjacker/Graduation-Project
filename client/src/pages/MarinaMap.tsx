@@ -50,7 +50,7 @@ function RealtimeShipLayer() {
   useEffect(() => {
     const fetchShips = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/realtime-ships');
+        const response = await axios.get('http://4.230.17.157:3000/api/realtime-ships');
         setShips(response.data);
       } catch (err) { console.warn("선박 API 연결 실패"); }
     };
@@ -116,7 +116,7 @@ export default function MarinaMap() {
     setMapConfig({ center: [marina.latitude, marina.longitude], zoom: 14 });
 
     try {
-      const res = await axios.get(`http://localhost:3000/api/marinas/${marina.id}/realtime-depth`);
+      const res = await axios.get(`http://4.230.17.157:3000/api/marinas/${marina.id}/realtime-depth`);
       setRealtimeDepth(res.data.realtime_depth);
     } catch (err) { setRealtimeDepth(null); }
 

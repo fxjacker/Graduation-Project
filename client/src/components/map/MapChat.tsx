@@ -28,7 +28,7 @@ export default function MapChat() {
 
     try {
       // 백엔드 API 호출 (윤석님 API 주소)
-      const res = await axios.post('http://localhost:3000/api/chat', { 
+      const res = await axios.post('http://4.230.17.157:3000/api/chat', { 
         message: input,
         context: "현재 사용자는 마리나 통합 지도 시스템을 보고 있습니다." 
       });
