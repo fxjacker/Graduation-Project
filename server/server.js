@@ -19,8 +19,6 @@ const authRoutes = require('./routes/auth');
 // 애플리케이션 인스턴스 생성 및 포트 설정 (환경변수 우선 적용)
 const app = express();
 // 프론트엔드에서 '/api/chat' 경로로 들어오는 모든 요청을 chatRouter로 보냅니다.
-app.use(express.json());
-app.use('/api/chat', chatRouter);
 // 클라우드 호스팅 환경의 동적 포트 할당을 지원하기 위한 조건부 포트 바인딩
 const PORT = process.env.PORT || 3000;
 
@@ -33,13 +31,21 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // CORS(교차 출처 리소스 공유) 정책 설정 객체 생성
 const corsOptions = {
     // 프론트엔드 호스트 도메인(Vite 로컬 서버)에 대한 리소스 접근 허용
-    origin: ['http://localhost:5173'], 
+    origin: ['http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://4.230.17.157:5173',
+        'http://4.230.17.157'], 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     // Legacy 브라우저 호환성을 위한 200 상태 코드 명시적 반환
     optionsSuccessStatus: 200
 };
 // 애플리케이션 전역 미들웨어로 CORS 정책 적용
 app.use(cors(corsOptions));
+// 프론트엔드에서 '/api/chat' 경로로 들어오는 모든 요청을 chatRouter로 보냅니다.
+app.use(express.json());
 
+//app.use('/api/chat', chatRouter);
 // API 요청 제한(Rate Limiting) 설정 (DDoS 및 과도한 트래픽 인입 방지)
 const apiLimiter = rateLimit({
     // 제한 윈도우 크기를 1분(60,000 밀리초)으로 설정
@@ -55,6 +61,7 @@ const apiLimiter = rateLimit({
 });
 // /api/ 하위의 모든 라우팅 경로에 Rate Limiting 미들웨어 적용
 app.use('/api/', apiLimiter);
+app.use('/api/chat', chatRouter);
 app.use('/api/auth', authRoutes);
 
 // 인메모리(In-memory) 데이터 캐싱을 위한 Map 객체 초기화 (선박 위치 정보 임시 저장소)
