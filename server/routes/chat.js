@@ -71,23 +71,50 @@ router.post('/', async (req, res) => {
             marina?.base_depth != null && tideMeter != null
                 ? marina.base_depth + tideMeter
                 : null;
+        
+        const windSpeed =
+            weather?.wind_speed != null
+                ? weather.wind_speed
+                : ocean?.wind_speed != null
+                    ? ocean.wind_speed
+                    : null;
 
+        const temperature =
+            weather?.temperature != null
+                ? weather.temperature
+                : ocean?.air_temp != null
+                    ? ocean.air_temp
+                    : null;        
+        console.log('[CHAT DEBUG]', {
+            marinaId,
+            marinaName: marina?.name,
+            nearestStationId: marina?.nearest_station_id,
+            weather,
+            ocean,
+            windSpeed,
+            temperature,
+            realtimeDepth
+        });
         const systemPrompt = `
 너는 대한민국 요트 항해사를 돕는 10년 차 전문 해양 네비게이터 AI야.
 사용자가 질문하면 아래 제공된 [실시간 해양 데이터]를 분석해서 친절하고 전문적으로 대답해줘.
 
 [실시간 해양 데이터]
 - 기준 마리나: ${marina.name}
-- 기상 상태: ${weather ? `기온 ${weather.temperature ?? '정보 없음'}℃, 풍속 ${weather.wind_speed ?? '정보 없음'}m/s` : '정보 없음'}
-- 해양 상태: ${ocean ? `조위 ${ocean.tide_level ?? '정보 없음'}cm, 수온 ${ocean.water_temp ?? '정보 없음'}℃` : '정보 없음'}
-- 기본 수심: ${marina.base_depth ?? '정보 없음'}m
+- 기온: ${temperature != null ? `${temperature}℃` : '정보 없음'}
+- 풍속: ${windSpeed != null ? `${windSpeed}m/s` : '정보 없음'}
+- 조위: ${ocean?.tide_level != null ? `${ocean.tide_level}cm` : '정보 없음'}
+- 수온: ${ocean?.water_temp != null ? `${ocean.water_temp}℃` : '정보 없음'}
+- 염분: ${ocean?.salinity != null ? ocean.salinity : '정보 없음'}
+- 기본 수심: ${marina.base_depth != null ? `${marina.base_depth}m` : '정보 없음'}
 - 실시간 예상 수심: ${realtimeDepth != null ? `${realtimeDepth.toFixed(2)}m` : '정보 없음'}
 
 [분석 가이드라인]
 1. 풍속이 10m/s 이상이면 출항 자제 및 위험 경고 메시지를 강하게 줄 것.
 2. 실시간 예상 수심이 2m 이하면 얕은 수심을 경고할 것.
-3. 데이터가 없는 항목은 언급하지 말 것.
+3. 데이터가 있는 항목만 근거로 사용하고, 없는 데이터는 모른다고 지어내지 말 것.
 4. 답변은 한국어로 작성하고, 사용자가 이해하기 쉽게 3~6문장 안에서 설명할 것.
+5. 출항 가능 여부를 묻는 경우, 현재 데이터 기준으로 "가능/주의/비추천" 중 하나의 판단을 내려줄 것.
         `.trim();
 
         const response = await openai.chat.completions.create({

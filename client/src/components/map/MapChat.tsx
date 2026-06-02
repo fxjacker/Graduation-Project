@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, MessageSquare, X, Bot, User, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
-export default function MapChat() {
+export default function MapChat({ selectedMarina }: { selectedMarina: any }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'assistant', content: '안녕하세요! 전국 마리나와 실시간 해양 정보에 대해 무엇이든 물어보세요.' }
@@ -21,22 +21,35 @@ export default function MapChat() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
+    if (!selectedMarina?.id) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '먼저 지도에서 마리나를 선택한 뒤 질문해 주세요.'
+      }]);
+      return;
+    }
+
     const userMessage = { role: 'user', content: input };
+    const currentInput = input;
+
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      // 백엔드 API 호출 (윤석님 API 주소)
-      const res = await axios.post('http://4.230.17.157:3000/api/chat', { 
-        message: input,
-        context: "현재 사용자는 마리나 통합 지도 시스템을 보고 있습니다." 
+      const res = await axios.post('http://4.230.17.157:3000/api/chat', {
+        marinaId: selectedMarina.id,
+        message: currentInput,
+        context: `현재 사용자는 ${selectedMarina.name} 마리나 정보를 보고 있습니다.`
       });
-      
+
       const botMessage = { role: 'assistant', content: res.data.reply };
       setMessages(prev => [...prev, botMessage]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: '죄송합니다. 지도 서버와 통신이 원활하지 않습니다.' }]);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '죄송합니다. 지도 서버와 통신이 원활하지 않습니다.'
+      }]);
     } finally {
       setIsLoading(false);
     }

@@ -260,7 +260,7 @@ export default function MarinaMap() {
         </div>
       )}
 
-      <MapChat />
+      <MapChat selectedMarina={selectedMarina} />
 
       {!isSidebarOpen && (
         <div className="absolute top-[90px] left-[10px] z-[1002]"><button onClick={() => setIsSidebarOpen(true)} className="w-[34px] h-[34px] bg-white text-[#003366] rounded-[4px] border-2 border-black/20 shadow-md flex items-center justify-center hover:bg-gray-100"><Menu size={18} /></button></div>
