@@ -557,7 +557,8 @@ app.get('/api/ocean-stations/:id', async (req, res) => {
         
         // 데이터 성공적으로 프론트에 쏴주기
         res.status(200).json(oceanData || {});
-        
+
+
     // 에러 처리 구간
     } catch (err) {
         // 에러 로그 찍기
@@ -607,6 +608,57 @@ app.get('/api/marinas/:id/realtime-depth', async (req, res) => {
         console.error(`[${req.params.id}] 실시간 수심 계산 에러:`, err.message);
         res.status(500).json({ message: '실시간 수심을 계산하는 중 서버 오류가 발생했습니다.' });
     }
+});
+
+// ==================================================================
+// 🗺️ [네비게이션 API] 육지를 우회하는 해상 최단 경로 탐색 라우터
+// ==================================================================
+
+// 프론트엔드에서 출발지와 도착지 위경도를 쿼리스트링으로 보내면, 해상 최단 경로(GeoJSON)를 응답합니다.
+app.get('/api/navigation', async (req, res) => {
+    try {
+        // 프론트엔드(광현님)가 보낸 URL에서 출발, 도착 위경도 4개의 값을 구조분해할당으로 깔끔하게 꺼냅니다.
+        // 예: /api/navigation?startLat=34.1&startLon=126.5&endLat=34.5&endLon=127.1
+        const { startLat, startLon, endLat, endLon } = req.query;
+
+        // 4개의 값 중 하나라도 빠져있다면 정상적인 계산이 불가능하므로 입구컷 에러 처리를 합니다.
+        if (!startLat || !startLon || !endLat || !endLon) {
+            // HTTP 400(잘못된 요청) 상태 코드와 함께 친절한 안내 메시지를 프론트로 보냅니다.
+            return res.status(400).json({ message: '출발지와 도착지의 위경도 좌표(startLat, startLon, endLat, endLon)가 모두 필요합니다.' });
+        }
+
+        // Supabase에 심어둔 'find_safe_sea_route' DB 함수(RPC)를 원격으로 호출(콜)합니다.
+        // 프론트에서 받은 문자열 좌표를 parseFloat로 실수(float) 형태로 변환하여 파라미터로 넘겨줍니다.
+        const { data: routeGeoJSON, error } = await supabase.rpc('find_safe_sea_route', {
+            start_lat: parseFloat(startLat),
+            start_lon: parseFloat(startLon),
+            end_lat: parseFloat(endLat),
+            end_lon: parseFloat(endLon)
+        });
+
+        // Supabase DB 함수 실행 중 에러가 발생했다면 catch 블록으로 에러를 냅다 던져버립니다.
+        if (error) throw error;
+
+        // 만약 경로를 찾지 못해 데이터가 null이거나 비어있다면, 육지에 완전히 막혔거나 데이터가 단절된 지역입니다.
+        if (!routeGeoJSON) {
+            // HTTP 404(찾을 수 없음) 상태 코드와 함께 안내 메시지를 보냅니다.
+            return res.status(404).json({ message: '해당 구간을 연결하는 안전한 해상 경로 데이터가 없습니다.' });
+        }
+
+        // DB에서 받은 문자열 형태의 GeoJSON을 프론트엔드가 바로 쓸 수 있게 자바스크립트 객체로 파싱(변환)합니다.
+        const parsedGeoJSON = JSON.parse(routeGeoJSON);
+
+        // 프론트엔드(React/Leaflet)에서 곧바로 지도에 렌더링할 수 있도록 200(성공) 코드와 함께 GeoJSON 객체를 전송합니다.
+        res.status(200).json(parsedGeoJSON);
+
+    // try 블록 안에서 터진 모든 에러를 여기서 안전하게 잡아서 처리합니다.
+    } catch (err) {
+        // 백엔드 터미널 콘솔에 어떤 에러가 발생했는지 상세히 기록하여 디버깅을 돕습니다.
+        console.error('해상 네비게이션 경로 탐색 중 에러 발생:', err.message);
+        // 프론트엔드에게는 HTTP 500(서버 에러) 코드와 함께 상황을 알립니다.
+        res.status(500).json({ message: '경로 탐색 서버에서 오류가 발생했습니다.' });
+    }
+// 네비게이션 API 라우터 닫기
 });
 
 // 정의된 환경변수 포트를 통해 HTTP 서버 소켓 바인딩 및 구동
