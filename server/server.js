@@ -66,6 +66,8 @@ app.use('/api/auth', authRoutes);
 
 // 인메모리(In-memory) 데이터 캐싱을 위한 Map 객체 초기화 (선박 위치 정보 임시 저장소)
 const shipCache = new Map();
+// 💡 추가된 코드: 챗봇 라우터(chat.js) 등 다른 파일에서도 이 캐시를 읽을 수 있게 Express 전역 변수에 담아줍니다.
+app.locals.shipCache = shipCache;
 // AIS 실시간 데이터 스트리밍 서비스의 WebSocket 엔드포인트 URL 상수 정의
 const AIS_STREAM_URL = 'wss://stream.aisstream.io/v0/stream';
 // 환경변수로부터 AIS API Key 안전하게 로드
