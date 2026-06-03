@@ -14,15 +14,12 @@ async function importTrajectoryData() {
         await client.connect();
         console.log('✅ Supabase DB 연결 성공!');
 
-        // 💡 1. [자동 청소] 잘못 들어간 NULL 데이터 1만 개를 싹 비워줍니다.
         await client.query('TRUNCATE TABLE ship_trajectory;');
-        console.log('🧹 기존 NULL 데이터 초기화 완료!');
+        console.log('🧹 기존 데이터 초기화 완료!');
 
         await new Promise((resolve, reject) => {
-            // 💡 2. iconv를 빼고 최신 공공데이터 표준인 utf8로 읽습니다.
-            fs.createReadStream('해양수산부_(융합)어선_항적도_20240221.csv', { encoding: 'utf8' })
+            fs.createReadStream('해양수산부_(융합)어선 항적도_20240221.csv', { encoding: 'utf8' })
                 .pipe(csv({
-                    // 💡 3. 눈에 보이지 않는 공백이나 쓰레기 문자(BOM)를 잘라내서 기둥 이름을 깔끔하게 만듭니다.
                     mapHeaders: ({ header }) => header.trim().replace(/^\uFEFF/, '')
                 }))
                 .on('data', (data) => results.push(data))
@@ -32,17 +29,27 @@ async function importTrajectoryData() {
 
         console.log(`📄 CSV 파일 읽기 완료. 총 ${results.length}개의 어선 데이터를 DB에 삽입합니다...`);
 
-        // 💡 4. [안전 장치] 만약 또 한글이 깨져서 '공간정보' 칸을 못 찾으면 멈추도록 방어합니다.
         if (!results[0]['공간정보']) {
-            console.error('\n🚨 [에러] CSV 컬럼을 찾을 수 없습니다! 파일이 EUC-KR 인코딩일 확률이 높습니다.');
-            console.log('👉 현재 인식된 컬럼명들:', Object.keys(results[0]));
-            console.log('👉 해결법: VS Code에서 CSV 파일을 열고 우측 하단의 인코딩을 UTF-8로 다시 저장해주세요!\n');
-            process.exit(1); // 스크립트 강제 종료
+            console.error('\n🚨 [에러] CSV 컬럼을 찾을 수 없습니다! 파일을 UTF-8로 저장해주세요.\n');
+            process.exit(1);
         }
 
-        let count = 0;
+        // 성공과 실패 개수를 세기 위한 카운터
+        let successCount = 0;
+        let skipCount = 0;
 
-        for (const row of results) {
+        // results 배열을 돌면서 인덱스(i)도 같이 확인합니다.
+        for (let i = 0; i < results.length; i++) {
+            const row = results[i];
+            const hexData = row['공간정보'];
+
+            // 💡 [핵심 방어 로직 1] 공간정보가 아예 없거나, 글자 수가 홀수면(짤린 데이터면) 건너뜁니다!
+            if (!hexData || hexData.trim().length % 2 !== 0) {
+                // console.log(`⚠️ ${i + 1}번째 줄 불량 데이터 건너뜀 (홀수 길거나 없음)`);
+                skipCount++;
+                continue; // 아래 코드를 실행하지 않고 바로 다음 데이터로 넘어감
+            }
+
             const insertQuery = `
                 INSERT INTO ship_trajectory (ship_type_code, ship_type_name, length, width, draft, geom)
                 VALUES ($1, $2, $3, $4, $5, ST_GeomFromWKB(decode($6, 'hex'), 4326))
@@ -54,21 +61,28 @@ async function importTrajectoryData() {
                 row['어선길이(KM)'] ? parseFloat(row['어선길이(KM)']) : null,
                 row['어선너비(KM)'] ? parseFloat(row['어선너비(KM)']) : null,
                 row['어선톤수(톤)'] ? parseFloat(row['어선톤수(톤)']) : null,
-                row['공간정보']
+                hexData.trim()
             ];
 
-            await client.query(insertQuery, values);
-            count++;
+            // 💡 [핵심 방어 로직 2] 혹시라도 DB에서 다른 이유로 에러가 나더라도 스크립트가 안 뻗게 막아줍니다.
+            try {
+                await client.query(insertQuery, values);
+                successCount++;
+            } catch (dbErr) {
+                // console.log(`⚠️ ${i + 1}번째 줄 DB 에러 건너뜀: ${dbErr.message}`);
+                skipCount++;
+            }
             
-            if (count % 1000 === 0) {
-                console.log(`⏳ 정상 적재 중... ${count} / ${results.length} 개 완료`);
+            // 1000번째 처리마다 상황을 터미널에 보고합니다.
+            if ((i + 1) % 1000 === 0) {
+                console.log(`⏳ 적재 중... ${i + 1} / ${results.length} 개 검사 완료 (성공: ${successCount}, 불량스킵: ${skipCount})`);
             }
         }
 
-        console.log('🎉 10,000개 융합 어선 항적 데이터베이스 완벽 적재 성공!');
+        console.log(`\n🎉 최종 완료! 정상 데이터 ${successCount}개 적재 성공 (불량 데이터 ${skipCount}개 제외됨)`);
 
     } catch (err) {
-        console.error('❌ 작업 중 에러 발생:', err.message);
+        console.error('❌ 작업 중 치명적 에러 발생:', err.message);
     } finally {
         await client.end();
     }
