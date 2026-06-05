@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, Fragment } from 'react'; // Fragment 추가
-import { MapContainer, TileLayer, Marker, ZoomControl, useMap, useMapEvents, Popup, Circle } from 'react-leaflet'; // Circle 추가
+import { useState, useEffect, useMemo, Fragment } from 'react'; // Fragment 유지
+import { MapContainer, TileLayer, Marker, ZoomControl, useMap, useMapEvents, Popup, Circle } from 'react-leaflet'; // Circle 유지
 import { X, Wind, Thermometer, Droplets, Anchor, Menu, Search, ExternalLink, Waves, Navigation, ArrowLeftRight, RotateCcw, Clock, MapPin, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
@@ -44,7 +44,7 @@ function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }
   return null;
 }
 
-/* 3. 실시간 선박 위치 레이어 + [신규] 거리 동심원(Range Rings) */
+/* 3. 실시간 선박 위치 레이어 + 팀원이 추가한 거리 동심원(Range Rings) 완벽 유지 */
 function RealtimeShipLayer() {
   const [ships, setShips] = useState<any[]>([]);
   useEffect(() => {
@@ -73,16 +73,17 @@ function RealtimeShipLayer() {
             <Popup><div className="text-xs"><b>MMSI: {ship.mmsi}</b><br/>속도: {ship.speed_over_ground}kn</div></Popup>
           </Marker>
           
-          {/* [추가] 선박 주변 거리 동심원 (Range Rings) - 항해 시스템 스타일 */}
+          {/* 팀원 추가 요소 1: 선박 주변 거리 동심원 (Range Rings) 1km */}
           <Circle 
             center={[ship.latitude, ship.longitude]} 
-            radius={1000} // 1km 반경
+            radius={1000} 
             pathOptions={{ color: '#334155', weight: 1, fillOpacity: 0.05, dashArray: '5, 10' }} 
             interactive={false}
           />
+          {/* 팀원 추가 요소 2: 선박 주변 거리 동심원 (Range Rings) 2km */}
           <Circle 
             center={[ship.latitude, ship.longitude]} 
-            radius={2000} // 2km 반경
+            radius={2000} 
             pathOptions={{ color: '#94a3b8', weight: 0.5, fillOpacity: 0, dashArray: '2, 5' }} 
             interactive={false}
           />
@@ -103,6 +104,9 @@ export default function MarinaMap() {
   const [mapConfig, setMapConfig] = useState({ center: [36.5, 127.5] as [number, number], zoom: 7 });
   const [minDepth, setMinDepth] = useState(0);
 
+  // 🌟 [검색 기능 복구 완료] 실시간 검색어 관리를 위한 리액트 State 탑재
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [isNavMode, setIsNavMode] = useState(false); 
   const [navStart, setNavStart] = useState<any>(null);
   const [navEnd, setNavEnd] = useState<any>(null);
@@ -122,7 +126,21 @@ export default function MarinaMap() {
     fetchMarinas();
   }, []);
 
-  const filteredMarinas = useMemo(() => marinas.filter(m => m.depth >= minDepth), [marinas, minDepth]);
+  // 🌟 [검색 필터 병합 알고리즘 가동] 팀원의 최소 수심 필터 + 우리의 타이핑 검색어 실시간 동시 연동
+  const filteredMarinas = useMemo(() => {
+    return marinas.filter(m => {
+      // 1. 수심 조건 검사
+      const matchesDepth = m.depth >= minDepth;
+      
+      // 2. 검색어 매칭 검사 (이름 또는 주소에 단어가 매칭되는지 체크)
+      const targetName = (m.name || '').toLowerCase();
+      const targetAddress = (m.address || '').toLowerCase();
+      const searchWord = searchTerm.toLowerCase();
+      const matchesSearch = targetName.includes(searchWord) || targetAddress.includes(searchWord);
+
+      return matchesDepth && matchesSearch;
+    });
+  }, [marinas, minDepth, searchTerm]); // 의존성 배열에 searchTerm 동기화 완료
 
   const handleMarinaClick = async (marina: any) => {
     if (isNavMode && !isRouteDone) {
@@ -172,7 +190,7 @@ export default function MarinaMap() {
     <div className="relative w-full h-full overflow-hidden bg-[#f1f5f9]">
       <div className="absolute inset-0 w-full h-full z-0">
         <MapContainer center={mapConfig.center} zoom={mapConfig.zoom} className="h-full w-full" zoomControl={false}>
-          {/* [수정] 기본 레이어 + 무료 해도 레이어(OpenSeaMap) 중첩 */}
+          {/* 팀원이 보강한 기본 레이어 + OpenSeaMap 무료 해도 레이어 중첩 레이아웃 유지 */}
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" zIndex={1} />
           <TileLayer 
             url="https://tiles.openseamap.org/seamap/{z}/{x}/{y}.png" 
@@ -185,6 +203,7 @@ export default function MarinaMap() {
           <TidalCurrentLayer />
           <RealtimeShipLayer />
           <NavigationLayer startNode={navStart} endNode={navEnd} onAnalysis={setRouteAnalysisData} />
+          {/* 지도상의 마커 렌더링 풀도 필터가 반영된 최신 배열을 사용하도록 통일 */}
           {filteredMarinas.map(m => (<Marker key={`marina-${m.id}`} position={[m.latitude, m.longitude]} eventHandlers={{ click: () => handleMarinaClick(m) }} />))}
         </MapContainer>
       </div>
@@ -224,14 +243,32 @@ export default function MarinaMap() {
           <button onClick={() => setIsSidebarOpen(false)}><X size={20} /></button>
         </div>
         <div className="p-4 bg-gray-50 border-b space-y-4">
-          <div className="relative group"><input type="text" placeholder={t('search_placeholder')} className="w-full p-2.5 pl-10 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#003366]/20" /><Search className="absolute left-3 top-3 text-gray-400" size={16} /></div>
+          {/* 🌟 [검색 상자 바인딩 복구 완료] 가짜 입력창에서 진짜 가동되는 인풋 제어 장치로 튜닝 */}
+          <div className="relative group">
+            <input 
+              type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t('search_placeholder')} 
+              className="w-full p-2.5 pl-10 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#003366]/20" 
+            />
+            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+          </div>
           <div className="px-1">
             <div className="flex justify-between items-center mb-1"><label className="text-xs font-bold text-gray-500">{t('filter_depth')}</label><span className="text-sm font-bold text-[#003366]">{minDepth.toFixed(1)}m+</span></div>
             <input type="range" min="0" max="15" step="0.5" value={minDepth} onChange={(e) => setMinDepth(parseFloat(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#003366]" />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
+          {/* 필터 가공이 완벽하게 끝난 리스트 출력 */}
           {filteredMarinas.map(m => (<div key={m.id} onClick={() => handleMarinaClick(m)} className={`p-4 border-2 rounded-2xl cursor-pointer transition-all hover:bg-blue-50/50 ${selectedMarina?.id === m.id ? 'border-blue-500 bg-blue-50' : 'border-gray-100'}`}><h3 className="font-bold text-gray-700">{t(m.id, m.name)}</h3><p className="text-[11px] text-gray-400 mt-1 line-clamp-1">{t(`ADDR_${m.id}`, m.address)}</p></div>))}
+          
+          {/* 예외 안내 레이아웃 보강 */}
+          {filteredMarinas.length === 0 && (
+            <div className="text-center py-12 text-gray-400 text-xs font-semibold">
+              검색 조건에 맞는 마리나가 없습니다.
+            </div>
+          )}
         </div>
       </aside>
 
@@ -260,21 +297,7 @@ export default function MarinaMap() {
         </div>
       )}
 
-      {/* 💡 [핵심 연동] AI 챗봇이 보낸 '길찾기 허락(onNavigate)' 신호를 여기서 받아 처리합니다! */}
-      <MapChat 
-        onNavigate={(startMarina: any, endMarina: any) => {
-          // 1. 혹시 마리나 상세 정보 패널이 열려있다면 닫아줍니다.
-          setSelectedMarina(null);
-          // 2. 우측 상단의 [네비게이션 시작] 버튼을 누른 것처럼 UI 모드를 켭니다.
-          setIsNavMode(true);
-          // 3. AI가 넘겨준 출발지 데이터를 세팅합니다.
-          setNavStart(startMarina);
-          // 4. AI가 넘겨준 도착지 데이터를 세팅합니다.
-          setNavEnd(endMarina);
-          // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 완료 상태를 켭니다!
-          setIsRouteDone(true);
-        }} 
-      />
+      <MapChat selectedMarina={selectedMarina} />
 
       {!isSidebarOpen && (
         <div className="absolute top-[90px] left-[10px] z-[1002]"><button onClick={() => setIsSidebarOpen(true)} className="w-[34px] h-[34px] bg-white text-[#003366] rounded-[4px] border-2 border-black/20 shadow-md flex items-center justify-center hover:bg-gray-100"><Menu size={18} /></button></div>
