@@ -297,7 +297,20 @@ export default function MarinaMap() {
         </div>
       )}
 
-      <MapChat selectedMarina={selectedMarina} />
+      <MapChat 
+        onNavigate={(startMarina: any, endMarina: any) => {
+          // 1. 혹시 마리나 상세 정보 패널이 열려있다면 닫아줍니다.
+          setSelectedMarina(null);
+          // 2. 우측 상단의 [네비게이션 시작] 버튼을 누른 것처럼 UI 모드를 켭니다.
+          setIsNavMode(true);
+          // 3. AI가 넘겨준 출발지 데이터를 세팅합니다.
+          setNavStart(startMarina);
+          // 4. AI가 넘겨준 도착지 데이터를 세팅합니다.
+          setNavEnd(endMarina);
+          // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 완료 상태를 켭니다!
+          setIsRouteDone(true);
+        }} 
+      />
 
       {!isSidebarOpen && (
         <div className="absolute top-[90px] left-[10px] z-[1002]"><button onClick={() => setIsSidebarOpen(true)} className="w-[34px] h-[34px] bg-white text-[#003366] rounded-[4px] border-2 border-black/20 shadow-md flex items-center justify-center hover:bg-gray-100"><Menu size={18} /></button></div>
