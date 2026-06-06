@@ -61,10 +61,27 @@ router.post('/', async (req, res) => {
 
         // 사용자의 질문 텍스트 속에 마리나 이름이 포함되어 있는지 검사하여 일치하는 마리나만 필터링합니다.
         const mentionedMarinas = allMarinas.filter(m => {
-            // "구산 마리나"를 "구산"으로 줄여 부를 수 있으니 공백과 '마리나' 글자를 제거해 둡니다.
-            const shortName = m.name.replace(' 마리나', '').trim();
-            // 질문에 원래 이름(구산 마리나) 또는 줄임말(구산)이 하나라도 포함되어 있으면 true를 반환합니다.
-            return message.includes(m.name) || message.includes(shortName);
+            // 1. [한국어 검사] 공백과 '마리나' 글자를 제거해 둡니다. (예: "구산")
+            const shortNameKo = m.name.replace(' 마리나', '').trim();
+            // 질문에 한국어 원래 이름이나 줄임말이 포함되어 있는지 확인합니다.
+            const isMatchKo = message.includes(m.name) || message.includes(shortNameKo);
+
+            // 2. [영어 검사] 대소문자 구분을 없애기 위해 사용자의 질문을 전부 소문자로 바꿉니다.
+            const lowerMessage = message.toLowerCase();
+            let isMatchEn = false;
+            
+            // 만약 DB에 영어 이름(english_name)이 입력되어 있다면?
+            if (m.english_name) {
+                // DB의 영어 이름도 전부 소문자로 바꿉니다. (예: "dodu port marina")
+                const nameEn = m.english_name.toLowerCase();
+                // 영어 이름에서 ' marina'를 떼어내고 줄임말을 만듭니다. (예: "dodu port")
+                const shortNameEn = nameEn.replace(' marina', '').trim();
+                // 사용자의 영어 질문 속에 전체 이름이나 줄임말이 포함되어 있는지 확인합니다.
+                isMatchEn = lowerMessage.includes(nameEn) || lowerMessage.includes(shortNameEn);
+            }
+
+            // 한국어로 부르든 영어로 부르든, 둘 중 하나라도 걸리면(true) 통과시킵니다!
+            return isMatchKo || isMatchEn;
         });
 
         // 💡 [핵심 추가] 사용자가 말한 순서대로 마리나 배열을 정렬합니다. (먼저 말한 게 출발지, 뒤에 말한 게 도착지)
