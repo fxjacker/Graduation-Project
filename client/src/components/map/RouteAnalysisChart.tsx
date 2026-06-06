@@ -62,7 +62,15 @@ export default function RouteAnalysisChart({ data, onClose, startNode, endNode, 
 
   // 선택된 언어의 번역 데이터를 꺼냅니다. (안전하게 fallback으로 'ko' 사용)
   const t = translations[lang] || translations['ko'];
-
+  // 💡 [핵심 추가] 언어에 따라 마리나 이름을 바꿔주는 마법의 함수!
+  const getMarinaName = (node: any) => {
+    // 한국어가 아니고(영어 or 일본어), DB에 english_name이 존재한다면 영어 이름을 반환!
+    if (lang !== 'ko' && node.english_name) {
+      return node.english_name;
+    }
+    // 그 외의 경우(한국어이거나 영어 이름이 DB에 없을 때)는 그냥 원래 한국어 이름 반환!
+    return node.name;
+  };
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[3000] w-[95%] max-w-6xl bg-white/95 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl p-8 border border-white animate-in slide-in-from-bottom duration-500">
       
@@ -72,7 +80,7 @@ export default function RouteAnalysisChart({ data, onClose, startNode, endNode, 
           <div className="flex flex-col">
             <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Route info</span>
             <h4 className="font-black text-2xl text-[#003366] flex items-center gap-2">
-              {startNode.name} <Navigation size={18} className="text-gray-300 rotate-90" /> {endNode.name}
+              {getMarinaName(startNode)} <Navigation size={18} className="text-gray-300 rotate-90" /> {getMarinaName(endNode)}
             </h4>
           </div>
           
