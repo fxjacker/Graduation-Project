@@ -153,8 +153,8 @@ router.post('/', async (req, res) => {
             if (mentionedMarinas.length === 2) {
                 // 프론트엔드에게 "네비게이션 띄울 준비해라!" 하고 출발/도착지 데이터를 묶어줍니다.
                 proposedNav = { start: mentionedMarinas[0], end: mentionedMarinas[1] };
-                // AI에게 "마지막에 반드시 길찾기 제안을 해라"라고 강력하게 지시사항을 덧붙입니다.
-                marinaInfoStr += `\n[특별 시스템 지시사항] 사용자가 두 개의 마리나를 언급했으므로, 현황 브리핑이 끝난 후 맨 마지막 문장에 반드시 "${mentionedMarinas[0].name}에서 ${mentionedMarinas[1].name}로 가는 네비게이션을 실행해 드릴까요?" 라고 물어보세요.`;
+                // AI가 출발지/도착지 문맥을 이해하고, 사용자의 언어로 직접 번역해서 제안하도록 지시합니다.
+                marinaInfoStr += `\n[특별 시스템 지시사항] 브리핑 마지막에 반드시 네비게이션 실행 여부를 제안하세요. 단, 제안 문장은 무조건 '사용자가 질문에 사용한 언어'와 동일한 언어로 자연스럽게 번역해야 합니다. (출발지: ${proposedNav.start.name}, 도착지: ${proposedNav.end.name})`;
             }
 
         // 사용자가 마리나 이름을 단 하나도 말하지 않았을 경우의 예외 처리입니다.
