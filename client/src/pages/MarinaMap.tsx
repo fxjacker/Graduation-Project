@@ -304,7 +304,7 @@ export default function MarinaMap() {
       )}
 
       <MapChat 
-        onNavigate={(startMarina: any, endMarina: any, lang: string) => {
+        onNavigate={(startMarina: any, endMarina: any, chatLang: string) => {
           // 1. 혹시 마리나 상세 정보 패널이 열려있다면 닫아줍니다.
           setSelectedMarina(null);
           // 2. 우측 상단의 [네비게이션 시작] 버튼을 누른 것처럼 UI 모드를 켭니다.
@@ -315,6 +315,9 @@ export default function MarinaMap() {
           setNavEnd(endMarina);
           // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 s완료 상태를 켭니다!
           setIsRouteDone(true);
+          if (chatLang) {
+            i18n.changeLanguage(chatLang);
+          }
         }} 
       />
 
