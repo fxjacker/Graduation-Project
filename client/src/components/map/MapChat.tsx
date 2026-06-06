@@ -142,7 +142,7 @@ export default function MapChat({ onNavigate }: any) {
       if (isPositive) {
         const lang = isEnglish ? 'en' : (isJapanese ? 'ja' : 'ko');
         // 부모(지도) 컴포넌트로 출발지/도착지 데이터를 쏴서 길을 그립니다.
-        if (onNavigate) onNavigate(pendingNav.start, pendingNav.end), lang;
+        if (onNavigate) onNavigate(pendingNav.start, pendingNav.end, lang);
         // 언어에 맞게 변환된 응답(positiveReply)을 화면에 말풍선으로 추가합니다.
         setMessages(prev => [...prev, { role: 'assistant', content: positiveReply }]);
         // 대기열을 깔끔하게 비워줍니다.
