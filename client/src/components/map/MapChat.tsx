@@ -106,20 +106,45 @@ export default function MapChat({ onNavigate }: any) {
     // AI가 생각(로딩)하고 있다는 점 3개 애니메이션을 화면에 켭니다.
     setIsLoading(true);
 
+    
     // 💡 [초강력 예외 처리] 만약 AI가 네비게이션을 제안해서 대기 중(pendingNav)인 상태라면?
     if (pendingNav) {
-      // 사용자가 긍정(허락)을 뜻하는 단어를 쳤는지 배열을 돌며 검사합니다.
-      const isPositive = ['응', '어', '네', '해줘', '그래', '시작', '콜', 'yes', '부탁해'].some(word => input.includes(word));
-      // 사용자가 부정(거절)을 뜻하는 단어를 쳤는지 배열을 돌며 검사합니다.
-      const isNegative = ['아니', '됐어', '괜찮아', '싫어', '취소', 'no', '안해'].some(word => input.includes(word));
+      // 대소문자 구분을 없애기 위해 사용자의 입력을 전부 소문자로 바꿉니다.
+      const lowerInput = input.toLowerCase();
+
+      // 다국어 긍정 단어 리스트 (한국어, 영어, 일본어) 중 하나라도 포함되었는지 검사합니다.
+      const isPositive = ['응', '어', '네', '해줘', '그래', '시작', '콜', 'yes', 'ok', 'sure', 'yep', 'はい', 'お願い', 'いいよ'].some(word => lowerInput.includes(word));
+      // 다국어 부정 단어 리스트 중 하나라도 포함되었는지 검사합니다.
+      const isNegative = ['아니', '됐어', '괜찮아', '싫어', '취소', 'no', 'nope', 'cancel', 'いいえ', 'だめ', 'キャンセル', '結構'].some(word => lowerInput.includes(word));
+
+      // 사용자가 입력한 텍스트에 영어 알파벳(a-z, A-Z)이 포함되어 있는지 정규식으로 검사합니다.
+      const isEnglish = /[a-zA-Z]/.test(input);
+      // 사용자가 입력한 텍스트에 일본어 문자(히라가나, 가타카나)가 포함되어 있는지 정규식으로 검사합니다.
+      const isJapanese = /[ぁ-んァ-ン]/.test(input);
+
+      // 챗봇이 띄워줄 긍정/부정 말풍선의 기본값을 한국어로 세팅합니다.
+      let positiveReply = '🌊 경로 탐색을 시작합니다! 하단의 뷰를 확인해주세요.';
+      let negativeReply = '네, 알겠습니다. 네비게이션 실행을 취소할게요. 다른 궁금한 점이 있으신가요?';
+
+      // 만약 사용자가 영어로 대답했다면? (예: "yes")
+      if (isEnglish) {
+          // 말풍선 내용을 영어로 바꿔치기합니다.
+          positiveReply = '🌊 Starting route navigation! Please check the view below.';
+          negativeReply = 'Understood. Navigation canceled. Do you have any other questions?';
+      // 만약 사용자가 일본어로 대답했다면? (예: "はい")
+      } else if (isJapanese) {
+          // 말풍선 내용을 일본어로 바꿔치기합니다.
+          positiveReply = '🌊 経路探索を開始します！下部のビューを確認してください。';
+          negativeReply = '承知いたしました。ナビゲーションをキャンセルします。他に気になることはありますか？';
+      }
 
       // 1. 만약 긍정적인 대답을 했다면? (서버에 물어볼 필요 없이 프론트에서 즉시 실행!)
       if (isPositive) {
-        // 부모(지도) 컴포넌트로 출발지/도착지 데이터를 쏴서 냅다 길을 그려버립니다!
+        // 부모(지도) 컴포넌트로 출발지/도착지 데이터를 쏴서 길을 그립니다.
         if (onNavigate) onNavigate(pendingNav.start, pendingNav.end);
-        // AI가 대답한 것처럼 "네비게이션 켭니다!" 말풍선을 화면에 추가합니다.
-        setMessages(prev => [...prev, { role: 'assistant', content: '🌊 경로 탐색을 시작합니다! 하단의 뷰를 확인해주세요.' }]);
-        // 미션 클리어했으니 대기열(pending)을 깔끔하게 비워줍니다.
+        // 언어에 맞게 변환된 응답(positiveReply)을 화면에 말풍선으로 추가합니다.
+        setMessages(prev => [...prev, { role: 'assistant', content: positiveReply }]);
+        // 대기열을 깔끔하게 비워줍니다.
         setPendingNav(null);
         // 로딩 애니메이션을 끄고 함수를 즉시 종료합니다.
         setIsLoading(false);
@@ -128,15 +153,15 @@ export default function MapChat({ onNavigate }: any) {
       
       // 2. 만약 부정적인 대답을 했다면?
       if (isNegative) {
-        // AI가 취소했다고 말풍선을 띄워줍니다.
-        setMessages(prev => [...prev, { role: 'assistant', content: '네, 알겠습니다. 네비게이션 실행을 취소할게요. 다른 궁금한 점이 있으신가요?' }]);
-        // 취소했으니 대기열을 깔끔하게 비워줍니다.
+        // 언어에 맞게 변환된 취소 응답(negativeReply)을 띄워줍니다.
+        setMessages(prev => [...prev, { role: 'assistant', content: negativeReply }]);
+        // 대기열을 깔끔하게 비워줍니다.
         setPendingNav(null);
         // 로딩 끄고 종료합니다.
         setIsLoading(false);
         return;
       }
-      // 긍정도 부정도 아니면(엉뚱한 소리를 하면) 그냥 아래 통신 로직으로 넘어가서 평소처럼 AI에게 대답을 요구합니다.
+      // 긍정도 부정도 아니면 아래의 일반 AI API 통신 로직으로 넘어갑니다.
     }
 
     // 서버와 통신하다가 터질 수 있으니 try-catch로 감쌉니다.
