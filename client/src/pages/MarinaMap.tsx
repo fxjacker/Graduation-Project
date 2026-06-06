@@ -94,7 +94,9 @@ function RealtimeShipLayer() {
 }
 
 export default function MarinaMap() {
-  const { t } = useTranslation('map');
+  const { t, i18n } = useTranslation('map'); // i18n 추가
+  // 우측 상단 버튼에 의해 바뀐 현재 언어를 파악합니다.
+  const currentLang = i18n.language?.includes('en') ? 'en' : i18n.language?.includes('ja') ? 'ja' : 'ko';
   const [selectedMarina, setSelectedMarina] = useState<any>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
   const [oceanData, setOceanData] = useState<any>(null);
@@ -113,7 +115,6 @@ export default function MarinaMap() {
   const [activeInput, setActiveInput] = useState<'start' | 'end' | null>(null);
   const [routeAnalysisData, setRouteAnalysisData] = useState<any[]>([]);
   const [isRouteDone, setIsRouteDone] = useState(false);
-  const [navLang, setNavLang] = useState('ko'); // 네비게이션 언어 저장용 State
   useEffect(() => {
     async function fetchMarinas() {
       const { data } = await supabase.from('marina_list').select('*');
@@ -272,17 +273,22 @@ export default function MarinaMap() {
         </div>
       </aside>
 
-      {isRouteDone && <RouteAnalysisChart data={routeAnalysisData} onClose={clearNav} startNode={navStart} endNode={navEnd} lang={navLang} />}
+      {isRouteDone && <RouteAnalysisChart data={routeAnalysisData} onClose={clearNav} startNode={navStart} endNode={navEnd} lang={currentLang} />}
 
       {!isNavMode && !isRouteDone && selectedMarina && (
         <div className="fixed md:absolute inset-y-0 right-0 w-full md:w-[380px] bg-white z-[2000] shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
           <div className="bg-[#003366] text-white p-6 relative">
             <button onClick={() => setSelectedMarina(null)} className="absolute top-6 right-6 p-2 hover:bg-white/20 rounded-xl transition-colors"><X size={24} /></button>
-            <h2 className="text-2xl font-bold tracking-tight">{selectedMarina.name}</h2>
+            <h2 className="text-2xl font-bold tracking-tight">
+              {currentLang !== 'ko' && selectedMarina.english_name ? selectedMarina.english_name : selectedMarina.name}
+            </h2>
           </div>
           <div className="p-6 space-y-8 overflow-y-auto bg-white flex-1">
             <section className="bg-blue-50 rounded-2xl p-5 border border-blue-100 shadow-inner">
-                <h4 className="text-sm font-bold text-blue-800 flex items-center gap-2 mb-4 uppercase tracking-widest"><Waves size={16} /> 실시간 안전 수심</h4>
+                <h4 className="text-sm font-bold text-blue-800 flex items-center gap-2 mb-4 uppercase tracking-widest">
+                  <Waves size={16} /> 
+                  {currentLang === 'en' ? 'Real-time Safe Depth' : currentLang === 'ja' ? 'リアルタイム安全水深' : '실시간 안전 수심'}
+                </h4>
                 <div className="flex justify-between items-end">
                     <div><p className="text-[10px] text-blue-400 font-bold uppercase mb-1">Live</p><p className="text-4xl font-black text-blue-600 tracking-tighter">{realtimeDepth !== null ? `${realtimeDepth}m` : '--'}</p></div>
                     <div className="text-right"><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Base</p><p className="text-lg font-black text-gray-600">{selectedMarina.depth}m</p></div>
@@ -307,7 +313,6 @@ export default function MarinaMap() {
           setNavStart(startMarina);
           // 4. AI가 넘겨준 도착지 데이터를 세팅합니다.
           setNavEnd(endMarina);
-          setNavLang(lang || 'ko');
           // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 s완료 상태를 켭니다!
           setIsRouteDone(true);
         }} 
