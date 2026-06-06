@@ -130,18 +130,30 @@ export default function MarinaMap() {
   // 🌟 [검색 필터 병합 알고리즘 가동] 팀원의 최소 수심 필터 + 우리의 타이핑 검색어 실시간 동시 연동
   const filteredMarinas = useMemo(() => {
     return marinas.filter(m => {
-      // 1. 수심 조건 검사
+      // 1. 수심 조건 검사: 마리나의 수심이 사용자가 설정한 최소 수심(minDepth) 이상인지 확인합니다.
       const matchesDepth = m.depth >= minDepth;
       
-      // 2. 검색어 매칭 검사 (이름 또는 주소에 단어가 매칭되는지 체크)
+      // 2. 검색어 매칭 검사
+      // 검색 시 대소문자 구분을 없애기 위해 한국어 이름과 주소를 모두 소문자로 변환해 둡니다.
       const targetName = (m.name || '').toLowerCase();
       const targetAddress = (m.address || '').toLowerCase();
+      // 💡 [핵심 추가] DB에 있는 영어 이름(english_name)도 검색할 수 있도록 소문자로 변환해 가져옵니다. (없으면 빈 문자열)
+      const targetEnglishName = (m.english_name || '').toLowerCase();
+      
+      // 사용자가 방금 타이핑한 검색어(searchTerm)도 소문자로 변환합니다. (예: "Bae" -> "bae")
       const searchWord = searchTerm.toLowerCase();
-      const matchesSearch = targetName.includes(searchWord) || targetAddress.includes(searchWord);
+      
+      // 한국어 이름, 주소, 또는 영어 이름 중 하나라도 검색어가 포함되어 있으면(true) 통과시킵니다!
+      const matchesSearch = 
+        targetName.includes(searchWord) || 
+        targetAddress.includes(searchWord) || 
+        targetEnglishName.includes(searchWord);
 
+      // 수심 조건도 맞고, 검색어 조건도 맞는 마리나만 최종적으로 화면에 뿌려줍니다.
       return matchesDepth && matchesSearch;
     });
-  }, [marinas, minDepth, searchTerm]); // 의존성 배열에 searchTerm 동기화 완료
+  // 마리나 목록, 최소 수심 설정, 검색어가 바뀔 때마다 이 필터 로직이 다시 돌아가게 만듭니다.
+  }, [marinas, minDepth, searchTerm]);
 
   const handleMarinaClick = async (marina: any) => {
     if (isNavMode && !isRouteDone) {
