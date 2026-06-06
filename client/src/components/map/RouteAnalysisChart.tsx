@@ -13,7 +13,8 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c; 
 };
 
-export default function RouteAnalysisChart({ data, onClose, startNode, endNode }: any) {
+// 💡 부모 컴포넌트에서 넘겨준 lang 파라미터를 받습니다 (기본값은 'ko')
+export default function RouteAnalysisChart({ data, onClose, startNode, endNode, lang = 'ko' }: any) {
   if (!data || data.length === 0 || !startNode || !endNode) return null;
 
   // 1. 실제 직선 거리 계산 (km)
@@ -31,6 +32,37 @@ export default function RouteAnalysisChart({ data, onClose, startNode, endNode }
   const hours = Math.floor(travelTimeMinutes / 60);
   const minutes = travelTimeMinutes % 60;
 
+  // 🌐 [다국어 지원 사전] lang 값에 따라 텍스트를 다르게 꺼내옵니다.
+  const translations: Record<string, any> = {
+    ko: {
+      distLabel: "실제 항로 거리",
+      timeLabel: "예상 소요 시간",
+      windLabel: "현재 풍속",
+      tempLabel: "수온/기온",
+      formatTime: (h: number, m: number) => h > 0 ? `${h}시간 ${m}분` : `${m}분`,
+      briefing: `항로 거리 ${seaDistance}km 기준, 안전 속도 유지를 권고합니다. ${hours > 0 ? `${hours}시간` : ''} 내 목적지 도착 예정입니다.`
+    },
+    en: {
+      distLabel: "Actual Distance",
+      timeLabel: "Estimated Time",
+      windLabel: "Wind Speed",
+      tempLabel: "Water/Air Temp",
+      formatTime: (h: number, m: number) => h > 0 ? `${h}h ${m}m` : `${m}m`,
+      briefing: `Based on the route distance of ${seaDistance}km, maintaining a safe speed is recommended. Estimated arrival in ${hours > 0 ? `${hours}h` : ''}.`
+    },
+    ja: {
+      distLabel: "実際の航路距離",
+      timeLabel: "予想所要時間",
+      windLabel: "現在の風速",
+      tempLabel: "水温/気温",
+      formatTime: (h: number, m: number) => h > 0 ? `${h}時間 ${m}分` : `${m}分`,
+      briefing: `航路距離 ${seaDistance}km 基準、安全速度の維持を推奨します。${hours > 0 ? `${hours}時間` : ''} 以内に目的地に到着する予定です。`
+    }
+  };
+
+  // 선택된 언어의 번역 데이터를 꺼냅니다. (안전하게 fallback으로 'ko' 사용)
+  const t = translations[lang] || translations['ko'];
+
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[3000] w-[95%] max-w-6xl bg-white/95 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl p-8 border border-white animate-in slide-in-from-bottom duration-500">
       
@@ -45,10 +77,10 @@ export default function RouteAnalysisChart({ data, onClose, startNode, endNode }
           </div>
           
           <div className="flex gap-4">
-            <InfoBadge icon={<MapPin size={14}/>} label="실제 항로 거리" value={`${seaDistance} km`} color="bg-blue-50 text-blue-600" />
-            <InfoBadge icon={<Clock size={14}/>} label="예상 소요 시간" value={hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`} color="bg-indigo-50 text-indigo-600" />
-            <InfoBadge icon={<Wind size={14}/>} label="현재 풍속" value="5.4 m/s" color="bg-cyan-50 text-cyan-600" />
-            <InfoBadge icon={<Thermometer size={14}/>} label="수온/기온" value="14.2 / 18.5 °C" color="text-rose-600 bg-rose-50" />
+            <InfoBadge icon={<MapPin size={14}/>} label={t.distLabel} value={`${seaDistance} km`} color="bg-blue-50 text-blue-600" />
+            <InfoBadge icon={<Clock size={14}/>} label={t.timeLabel} value={t.formatTime(hours, minutes)} color="bg-indigo-50 text-indigo-600" />
+            <InfoBadge icon={<Wind size={14}/>} label={t.windLabel} value="5.4 m/s" color="bg-cyan-50 text-cyan-600" />
+            <InfoBadge icon={<Thermometer size={14}/>} label={t.tempLabel} value="14.2 / 18.5 °C" color="text-rose-600 bg-rose-50" />
           </div>
         </div>
 
@@ -81,7 +113,7 @@ export default function RouteAnalysisChart({ data, onClose, startNode, endNode }
           <div className="relative z-10">
             <h5 className="flex items-center gap-2 text-xs font-black text-blue-300 mb-3 uppercase tracking-widest"><AlertTriangle size={14} /> Safety Briefing</h5>
             <p className="text-sm font-bold leading-relaxed mb-4">
-              항로 거리 {seaDistance}km 기준, 안전 속도 유지를 권고합니다. {hours > 0 ? `${hours}시간` : ''} 내 목적지 도착 예정입니다.
+              {t.briefing}
             </p>
           </div>
           <Waves className="absolute -bottom-4 -right-4 text-white/5 w-32 h-32" />

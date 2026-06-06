@@ -113,7 +113,7 @@ export default function MarinaMap() {
   const [activeInput, setActiveInput] = useState<'start' | 'end' | null>(null);
   const [routeAnalysisData, setRouteAnalysisData] = useState<any[]>([]);
   const [isRouteDone, setIsRouteDone] = useState(false);
-
+  const [navLang, setNavLang] = useState('ko'); // 네비게이션 언어 저장용 State
   useEffect(() => {
     async function fetchMarinas() {
       const { data } = await supabase.from('marina_list').select('*');
@@ -272,7 +272,7 @@ export default function MarinaMap() {
         </div>
       </aside>
 
-      {isRouteDone && <RouteAnalysisChart data={routeAnalysisData} onClose={clearNav} startNode={navStart} endNode={navEnd} />}
+      {isRouteDone && <RouteAnalysisChart data={routeAnalysisData} onClose={clearNav} startNode={navStart} endNode={navEnd} lang={navLang} />}
 
       {!isNavMode && !isRouteDone && selectedMarina && (
         <div className="fixed md:absolute inset-y-0 right-0 w-full md:w-[380px] bg-white z-[2000] shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
@@ -298,7 +298,7 @@ export default function MarinaMap() {
       )}
 
       <MapChat 
-        onNavigate={(startMarina: any, endMarina: any) => {
+        onNavigate={(startMarina: any, endMarina: any, lang: string) => {
           // 1. 혹시 마리나 상세 정보 패널이 열려있다면 닫아줍니다.
           setSelectedMarina(null);
           // 2. 우측 상단의 [네비게이션 시작] 버튼을 누른 것처럼 UI 모드를 켭니다.
@@ -307,7 +307,8 @@ export default function MarinaMap() {
           setNavStart(startMarina);
           // 4. AI가 넘겨준 도착지 데이터를 세팅합니다.
           setNavEnd(endMarina);
-          // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 완료 상태를 켭니다!
+          setNavLang(lang || 'ko');
+          // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 s완료 상태를 켭니다!
           setIsRouteDone(true);
         }} 
       />
