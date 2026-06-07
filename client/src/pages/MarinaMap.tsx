@@ -97,6 +97,10 @@ export default function MarinaMap() {
   const { t, i18n } = useTranslation('map'); // i18n 추가
   // 우측 상단 버튼에 의해 바뀐 현재 언어를 파악합니다.
   const currentLang = i18n.language?.includes('en') ? 'en' : i18n.language?.includes('ja') ? 'ja' : 'ko';
+  const getMarinaName = (marina: any) => {
+    if (!marina) return '';
+    return currentLang !== 'ko' && marina.english_name ? marina.english_name : marina.name;
+  };
   const [selectedMarina, setSelectedMarina] = useState<any>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
   const [oceanData, setOceanData] = useState<any>(null);
@@ -228,7 +232,9 @@ export default function MarinaMap() {
             className={`flex items-center gap-3 px-6 py-3 rounded-full font-black shadow-2xl transition-all border-2 ${isNavMode ? 'bg-red-500 text-white border-red-400' : 'bg-white text-[#003366] border-gray-100'}`}
           >
             {isNavMode ? <X size={20}/> : <Navigation size={20} className="text-blue-500" />}
-            {isNavMode ? '네비게이션 종료' : '네비게이션 시작'}
+            {isNavMode 
+              ? (currentLang === 'en' ? 'Exit Navigation' : currentLang === 'ja' ? 'ナビゲーション終了' : '네비게이션 종료') 
+              : (currentLang === 'en' ? 'Start Navigation' : currentLang === 'ja' ? 'ナビゲーション開始' : '네비게이션 시작')}
           </button>
         </div>
       )}
@@ -239,13 +245,19 @@ export default function MarinaMap() {
           <div className="space-y-3">
             <div onClick={() => setActiveInput('start')} className={`p-4 border-2 rounded-2xl cursor-pointer ${activeInput === 'start' ? 'border-blue-500 bg-blue-50' : 'border-gray-100 bg-white'}`}>
               <span className="text-[9px] font-black text-blue-500 uppercase">Start</span>
-              <p className="font-bold text-sm truncate">{navStart ? navStart.name : '출발지 선택'}</p>
+              <p className="font-bold text-sm truncate">
+                {navStart ? getMarinaName(navStart) : (currentLang === 'en' ? 'Select Start' : currentLang === 'ja' ? '出発地を選択' : '출발지 선택')}
+              </p>
             </div>
             <div onClick={() => setActiveInput('end')} className={`p-4 border-2 rounded-2xl cursor-pointer ${activeInput === 'end' ? 'border-blue-500 bg-blue-50' : 'border-gray-100 bg-white'}`}>
               <span className="text-[9px] font-black text-red-500 uppercase">Destination</span>
-              <p className="font-bold text-sm truncate">{navEnd ? navEnd.name : '도착지 선택'}</p>
+              <p className="font-bold text-sm truncate">
+                {navEnd ? getMarinaName(navEnd) : (currentLang === 'en' ? 'Select Destination' : currentLang === 'ja' ? '到着地を選択' : '도착지 선택')}
+              </p>
             </div>
-            <button disabled={!navStart || !navEnd} onClick={() => setIsRouteDone(true)} className={`w-full py-4 mt-4 rounded-xl font-black text-sm shadow-xl transition-all ${navStart && navEnd ? 'bg-[#003366] text-white shadow-blue-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>길찾기 실행</button>
+            <button disabled={!navStart || !navEnd} onClick={() => setIsRouteDone(true)} className={`w-full py-4 mt-4 rounded-xl font-black text-sm shadow-xl transition-all ${navStart && navEnd ? 'bg-[#003366] text-white shadow-blue-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+              {currentLang === 'en' ? 'Find Route' : currentLang === 'ja' ? '経路を検索' : '길찾기 실행'}
+            </button>
           </div>
         </div>
       )}
