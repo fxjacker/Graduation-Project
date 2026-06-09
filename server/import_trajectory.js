@@ -43,7 +43,7 @@ async function importTrajectoryData() {
             const row = results[i];
             const hexData = row['공간정보'];
 
-            // 💡 [핵심 방어 로직 1] 공간정보가 아예 없거나, 글자 수가 홀수면(짤린 데이터면) 건너뜁니다!
+            // 💡 [핵심 방어 로직 1] 공간정보가 아예 없거나, 글자 수가 홀수면(짤린 데이터면) 건너뜁니다
             if (!hexData || hexData.trim().length % 2 !== 0) {
                 // console.log(`⚠️ ${i + 1}번째 줄 불량 데이터 건너뜀 (홀수 길거나 없음)`);
                 skipCount++;

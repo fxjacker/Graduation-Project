@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
             // 질문에 한국어 원래 이름이나 줄임말이 포함되어 있는지 확인합니다.
             const isMatchKo = message.includes(m.name) || message.includes(shortNameKo);
 
-            // 2. [영어 검사] 대소문자 구분을 없애기 위해 사용자의 질문을 전부 소문자로 바꿉니다.
+            // 2. 대소문자 구분을 없애기 위해 사용자의 질문을 전부 소문자로 바꿉니다.
             const lowerMessage = message.toLowerCase();
             let isMatchEn = false;
             
@@ -80,7 +80,7 @@ router.post('/', async (req, res) => {
                 isMatchEn = lowerMessage.includes(nameEn) || lowerMessage.includes(shortNameEn);
             }
 
-            // 한국어로 부르든 영어로 부르든, 둘 중 하나라도 걸리면(true) 통과시킵니다!
+            // 한국어로 부르든 영어로 부르든, 둘 중 하나라도 걸리면(true) 통과시킵니다
             return isMatchKo || isMatchEn;
         });
 
@@ -96,7 +96,7 @@ router.post('/', async (req, res) => {
 
         // AI에게 지시할 마리나 환경 정보 텍스트를 담을 빈 문자열 변수를 만듭니다.
         let marinaInfoStr = '';
-        // 프론트엔드로 몰래 넘겨줄 '네비게이션 제안용 데이터' 변수를 초기화합니다.
+        // 프론트엔드로 넘겨줄 '네비게이션 제안용 데이터' 변수를 초기화합니다.
         let proposedNav = null;
 
         // 질문 속에서 하나 이상의 마리나 이름이 발견되었다면 날씨/수심 정보를 수집합니다.
@@ -123,9 +123,9 @@ router.post('/', async (req, res) => {
                 const tideMeter = ocean?.tide_level != null ? ocean.tide_level / 100 : null;
                 // 마리나 기본 수심에 현재 조위(m)를 더해 실시간 수심을 계산합니다.
                 const realtimeDepth = marina.base_depth != null && tideMeter != null ? marina.base_depth + tideMeter : null;
-                // 풍속은 기상청 우선, 없으면 해양조사원 데이터를 가져다 씁니다.
+                // 풍속은 기상청 우선 없으면 해양조사원 데이터를 가져다 씁니다.
                 const windSpeed = weather?.wind_speed != null ? weather.wind_speed : (ocean?.wind_speed != null ? ocean.wind_speed : '정보 없음');
-                // 기온도 기상청 우선, 없으면 해양조사원 데이터를 가져다 씁니다.
+                // 기온도 기상청 우선 없으면 해양조사원 데이터를 가져다 씁니다.
                 const temperature = weather?.temperature != null ? weather.temperature : (ocean?.air_temp != null ? ocean.air_temp : '정보 없음');
 
                 // 마리나 반경 5km 이내에 있는 배의 숫자를 세기 위한 카운터 변수입니다.
@@ -149,11 +149,11 @@ router.post('/', async (req, res) => {
 - 주변 선박 경계: 반경 5km 이내 약 ${nearbyShipsCount}척 활동 중\n`;
             }
 
-            // 💡 [핵심 추가] 만약 사용자가 정확히 2개의 마리나를 언급했다면?
+            // 만약 사용자가 정확히 2개의 마리나를 언급했다면?
             if (mentionedMarinas.length === 2) {
                 // 프론트엔드에게 "네비게이션 띄울 준비해라!" 하고 출발/도착지 데이터를 묶어줍니다.
                 proposedNav = { start: mentionedMarinas[0], end: mentionedMarinas[1] };
-                // AI가 출발지/도착지 문맥을 이해하고, 사용자의 언어로 직접 번역해서 제안하도록 지시합니다.
+                // AI가 출발지/도착지 문맥을 이해하고 사용자의 언어로 직접 번역해서 제안하도록 지시합니다.
                 marinaInfoStr += `\n[특별 시스템 지시사항] 브리핑 마지막에 반드시 네비게이션 실행 여부를 제안하세요. 단, 제안 문장은 무조건 '사용자가 질문에 사용한 언어'와 동일한 언어로 자연스럽게 번역해야 합니다. (출발지: ${proposedNav.start.name}, 도착지: ${proposedNav.end.name})`;
             }
 
@@ -198,7 +198,7 @@ ${marinaInfoStr}
         // 텍스트 답변이 정상적으로 만들어지지 않았다면 502 에러를 반환합니다.
         if (!reply) return res.status(502).json({ message: 'AI 답변을 생성하지 못했습니다.' });
 
-        // 💡 [핵심 추가] 프론트엔드로 텍스트 답변(reply)과 함께, 감지된 네비게이션 제안(proposedNav)을 같이 전송합니다!
+        // 프론트엔드로 텍스트 답변(reply)과 함께 감지된 네비게이션 제안(proposedNav)을 같이 전송합니다!
         res.status(200).json({ reply, proposedNav });
 
     // try 블록 내부 어디서든 에러가 터지면 catch 블록이 안전하게 잡아냅니다.

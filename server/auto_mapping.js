@@ -66,7 +66,7 @@ async function autoMapNearestStations() {
             }
         }
 
-        // 3. (수정된 부분) upsert 대신 하나씩 update 방식으로 안전하게 저장합니다.
+        // 3. upsert 대신 하나씩 update 방식으로 안전하게 저장합니다.
         if (updates.length > 0) {
             console.log('\n💾 데이터베이스에 안전하게 개별 업데이트를 진행합니다...');
             

@@ -152,7 +152,7 @@ function connectAIS() {
 connectAIS();
 
 // ============================================================================
-// 🧹 [초강력 유령선 청소 스케줄러] - 3분 미응답 시 즉시 삭제 (1분 주기 실행)
+//  [유령선 청소 스케줄러] - 미응답 시 즉시 삭제 
 // ============================================================================
 
 setInterval(() => {
@@ -163,17 +163,17 @@ setInterval(() => {
         const lastUpdated = new Date(shipData.updated_at);
         const diffMinutes = (now - lastUpdated) / (1000 * 60);
 
-        // 🚨 기준 대폭 강화: 15분 -> 3분 (3분 동안 위치 업데이트 없으면 바로 삭제)
+
         if (diffMinutes > 5) {
             shipCache.delete(mmsi);
             deletedCount++;
         }
     }
 
-    // 삭제된 배가 있든 없든, 터미널에 현재 상태를 1분마다 무조건 출력해서 확인시켜 줍니다.
-    console.log(`🧹 [캐시 상태] 방금 ${deletedCount}척 지움! (현재 지도에 쏴주는 배: 총 ${shipCache.size}척)`);
+    // 삭제된 배가 있든 없든, 터미널에 현재 상태를 출력해서 확인시켜 줍니다.
+    console.log(` [캐시 상태] 방금 ${deletedCount}척 지움! (현재 지도에 쏴주는 배: 총 ${shipCache.size}척)`);
     
-// 실행 주기도 10분 -> 1분(60,000 밀리초)으로 단축
+
 }, 5 * 60 * 1000);
 
 // 클라이언트가 실시간 선박 위치 데이터를 요청할 때 응답을 처리하는 RESTful 엔드포인트
@@ -485,63 +485,61 @@ cron.schedule('4-59/10 * * * *', async () => {
 });
 
 // ==================================================================
-// 📡 프론트엔드(광현님) 통신용 RESTful API 라우터 구간
+//  프론트엔드 통신용 RESTful API 라우터 구간
 // ==================================================================
 
-// 프론트엔드에서 전국 마리나 위치 마커를 찍기 위해 목록을 요청하는 GET 라우터야
+// 프론트엔드에서 전국 마리나 위치 마커를 찍기 위해 목록을 요청하는 GET 라우터
 app.get('/api/marinas', async (req, res) => {
     try {
-        // Supabase의 marina_list 테이블에서 모든(*) 데이터를 싹 다 조회해와
+        // Supabase의 marina_list 테이블에서 모든(*) 데이터 조회
         const { data: marinas, error } = await supabase.from('marina_list').select('*');
         
-        // 디비 조회 중 에러가 났으면 바로 catch문으로 에러를 던져버려
         if (error) throw error;
         
-        // 성공했으면 프론트엔드한테 200(성공) 코드랑 마리나 배열(JSON)을 예쁘게 포장해서 보내줘
         res.status(200).json(marinas);
         
-    // try문 안에서 에러가 터지면 여기서 잡아채서 처리해
+    // try문 안에서 에러가 터지면 여기서 잡아채서 처리
     } catch (err) {
         // 서버 콘솔창에 어떤 에러인지 빨간불로 띄워주고
         console.error('마리나 목록 조회 에러:', err.message);
         // 프론트엔드한테는 500(서버 터짐) 상태 코드랑 친절한 한국어 에러 메시지를 보내줘
         res.status(500).json({ message: '서버에서 마리나 데이터를 불러오는데 실패했습니다.' });
-    // try-catch문 닫기
+
     }
-// 마리나 목록 API 라우터 닫기
+
 });
 
-// 프론트엔드에서 특정 마리나를 클릭했을 때, 그 마리나의 '현재 날씨'만 물어보는 GET 라우터야
+// 프론트엔드에서 특정 마리나를 클릭했을 때 그 마리나의 '현재 날씨'만 물어보는 GET 라우터야
 app.get('/api/marinas/:id/weather', async (req, res) => {
     try {
-        // 클라이언트가 요청한 URL 주소에서 마리나 ID(예: MARINA_1)만 변수에 쏙 빼와
+        // 클라이언트가 요청한 URL 주소에서 마리나 ID(예: MARINA_1)만 변수에 추출
         const marinaId = req.params.id;
         
-        // Supabase 날씨 테이블에서 station_id 컬럼이 방금 빼온 ID랑 똑같은 딱 한 줄(.single())만 찾아와
+        // Supabase 날씨 테이블에서 station_id 컬럼이 방금 빼온 ID랑 똑같은 딱 한 줄(.single())만 찾는 코드
         const { data: weather, error } = await supabase
             .from('weather_observations')
             .select('*')
             .eq('station_id', marinaId)
             .single();
             
-        // 에러가 났는데, 그게 '데이터가 아직 안 쌓여서 없는 에러(PGRST116)'가 아닌 진짜 서버 에러면 던져버려
+        // 에러가 났는데, 그게 '데이터가 아직 안 쌓여서 없는 에러(PGRST116)'가 아닌 진짜 서버 에러면 던진다
         if (error && error.code !== 'PGRST116') throw error;
         
-        // 찾아온 날씨 데이터가 있으면 그거 보내주고, 아직 없으면 빈 객체({})를 보내줘서 프론트 뻗는거 막아
+        // 찾아온 날씨 데이터가 있으면 그거 보내주고 아직 없으면 빈 객체({})를 보내줘서 프론트 뻗는거 방지
         res.status(200).json(weather || {});
         
-    // 에러 잡는 구간이야
+    // 에러 잡는 구간
     } catch (err) {
         // 백엔드 터미널에 어떤 마리나에서 날씨 에러 났는지 로그 남겨줘
         console.error(`[${req.params.id}] 날씨 조회 에러:`, err.message);
         // 프론트엔드한테는 500 에러 코드 던져서 안내해줘
         res.status(500).json({ message: '해당 마리나의 실시간 날씨 정보를 불러올 수 없습니다.' });
-    // try-catch문 닫기
+
     }
-// 특정 마리나 날씨 조회 API 라우터 닫기
+
 });
 
-// 프론트엔드에서 특정 관측소의 '실시간 수심/해양 데이터'를 물어보는 GET 라우터야
+// 프론트엔드에서 특정 관측소의 '실시간 수심/해양 데이터'를 물어보는 GET 라우터
 app.get('/api/ocean-stations/:id', async (req, res) => {
     try {
         // 클라이언트가 요청한 URL 파라미터에서 관측소 ID(예: DT_0001) 빼오기
@@ -567,9 +565,9 @@ app.get('/api/ocean-stations/:id', async (req, res) => {
         console.error(`[${req.params.id}] 수심 데이터 조회 에러:`, err.message);
         // 프론트에 500 에러 응답하기
         res.status(500).json({ message: '해양 관측소 데이터를 불러올 수 없습니다.' });
-    // try-catch 닫기
+    
     }
-// 특정 관측소 수심 조회 API 라우터 닫기
+
 });
 
 app.get('/api/marinas/:id/realtime-depth', async (req, res) => {
@@ -613,7 +611,7 @@ app.get('/api/marinas/:id/realtime-depth', async (req, res) => {
 });
 
 // ==================================================================
-// 🗺️ [네비게이션 API] 육지를 우회하는 해상 최단 경로 탐색 라우터
+// [네비게이션 API] 육지를 우회하는 해상 최단 경로 탐색 라우터
 // ==================================================================
 
 // 프론트엔드에서 출발지와 도착지 위경도를 쿼리스트링으로 보내면, 해상 최단 경로(GeoJSON)를 응답합니다.
@@ -625,7 +623,7 @@ app.get('/api/navigation', async (req, res) => {
 
         // 4개의 값 중 하나라도 빠져있다면 정상적인 계산이 불가능하므로 입구컷 에러 처리를 합니다.
         if (!startLat || !startLon || !endLat || !endLon) {
-            // HTTP 400(잘못된 요청) 상태 코드와 함께 친절한 안내 메시지를 프론트로 보냅니다.
+            // HTTP 400(잘못된 요청) 상태 코드와 함께 안내 메시지를 프론트로 보냅니다.
             return res.status(400).json({ message: '출발지와 도착지의 위경도 좌표(startLat, startLon, endLat, endLon)가 모두 필요합니다.' });
         }
 
@@ -641,7 +639,7 @@ app.get('/api/navigation', async (req, res) => {
         // Supabase DB 함수 실행 중 에러가 발생했다면 catch 블록으로 에러를 냅다 던져버립니다.
         if (error) throw error;
 
-        // 만약 경로를 찾지 못해 데이터가 null이거나 비어있다면, 육지에 완전히 막혔거나 데이터가 단절된 지역입니다.
+        // 만약 경로를 찾지 못해 데이터가 null이거나 비어있다면 육지에 완전히 막혔거나 데이터가 단절된 지역입니다.
         if (!routeGeoJSON) {
             // HTTP 404(찾을 수 없음) 상태 코드와 함께 안내 메시지를 보냅니다.
             return res.status(404).json({ message: '해당 구간을 연결하는 안전한 해상 경로 데이터가 없습니다.' });
@@ -660,7 +658,6 @@ app.get('/api/navigation', async (req, res) => {
         // 프론트엔드에게는 HTTP 500(서버 에러) 코드와 함께 상황을 알립니다.
         res.status(500).json({ message: '경로 탐색 서버에서 오류가 발생했습니다.' });
     }
-// 네비게이션 API 라우터 닫기
 });
 
 // 정의된 환경변수 포트를 통해 HTTP 서버 소켓 바인딩 및 구동
