@@ -14,8 +14,7 @@ const { createClient } = require('@supabase/supabase-js');
 const cron = require('node-cron');
 const WebSocket = require('ws');
 
-// 새로 분리한 auth 라우터 모듈 불러오기
-const authRoutes = require('./routes/auth');
+
 // 애플리케이션 인스턴스 생성 및 포트 설정 (환경변수 우선 적용)
 const app = express();
 // 프론트엔드에서 '/api/chat' 경로로 들어오는 모든 요청을 chatRouter로 보냅니다.
@@ -62,7 +61,6 @@ const apiLimiter = rateLimit({
 // /api/ 하위의 모든 라우팅 경로에 Rate Limiting 미들웨어 적용
 app.use('/api/', apiLimiter);
 app.use('/api/chat', chatRouter);
-app.use('/api/auth', authRoutes);
 
 // 인메모리(In-memory) 데이터 캐싱을 위한 Map 객체 초기화 (선박 위치 정보 임시 저장소)
 const shipCache = new Map();
