@@ -96,7 +96,7 @@ fs.createReadStream('해양수산부_마리나 정보_20250124.csv')
         const { error } = await supabase.from('marina_list').upsert(results, { onConflict: 'id' });
 
         if (error) {
-            console.error('❌ 아 디비 인서트 에러남 ㅠㅠ 다시 확인 ㄱㄱ:', error.message);
+            console.error('❌ 다시 확인:', error.message);
         } else {
             console.log(`✅ 총 ${results.length}개 마리나 셋팅 완료!`);
         }
