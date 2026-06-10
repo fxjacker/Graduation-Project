@@ -43,11 +43,11 @@ async function importTrajectoryData() {
             const row = results[i];
             const hexData = row['공간정보'];
 
-            // 💡 [핵심 방어 로직 1] 공간정보가 아예 없거나, 글자 수가 홀수면(짤린 데이터면) 건너뜁니다
+            // 공간정보가 아예 없거나, 글자 수가 홀수면(짤린 데이터면) 건너뜁니다
             if (!hexData || hexData.trim().length % 2 !== 0) {
-                // console.log(`⚠️ ${i + 1}번째 줄 불량 데이터 건너뜀 (홀수 길거나 없음)`);
+                // console.log(`${i + 1}번째 줄 불량 데이터 건너뜀 (홀수 길거나 없음)`);
                 skipCount++;
-                continue; // 아래 코드를 실행하지 않고 바로 다음 데이터로 넘어감
+                continue;
             }
 
             const insertQuery = `
@@ -64,25 +64,25 @@ async function importTrajectoryData() {
                 hexData.trim()
             ];
 
-            // 💡 [핵심 방어 로직 2] 혹시라도 DB에서 다른 이유로 에러가 나더라도 스크립트가 안 뻗게 막아줍니다.
+            // 혹시라도 DB에서 다른 이유로 에러가 나더라도 스크립트가 안 뻗게 막아줍니다.
             try {
                 await client.query(insertQuery, values);
                 successCount++;
             } catch (dbErr) {
-                // console.log(`⚠️ ${i + 1}번째 줄 DB 에러 건너뜀: ${dbErr.message}`);
+                // console.log(` ${i + 1}번째 줄 DB 에러 건너뜀: ${dbErr.message}`);
                 skipCount++;
             }
             
             // 1000번째 처리마다 상황을 터미널에 보고합니다.
             if ((i + 1) % 1000 === 0) {
-                console.log(`⏳ 적재 중... ${i + 1} / ${results.length} 개 검사 완료 (성공: ${successCount}, 불량스킵: ${skipCount})`);
+                console.log(`적재 중... ${i + 1} / ${results.length} 개 검사 완료 (성공: ${successCount}, 불량스킵: ${skipCount})`);
             }
         }
 
-        console.log(`\n🎉 최종 완료! 정상 데이터 ${successCount}개 적재 성공 (불량 데이터 ${skipCount}개 제외됨)`);
+        console.log(`\n최종 완료! 정상 데이터 ${successCount}개 적재 성공 (불량 데이터 ${skipCount}개 제외됨)`);
 
     } catch (err) {
-        console.error('❌ 작업 중 치명적 에러 발생:', err.message);
+        console.error('작업 중 치명적 에러 발생:', err.message);
     } finally {
         await client.end();
     }

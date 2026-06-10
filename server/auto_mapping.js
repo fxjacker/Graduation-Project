@@ -1,6 +1,4 @@
-// 환경변수를 로드하기 위해 dotenv 모듈을 불러옵니다.
 require('dotenv').config();
-// Supabase 클라이언트를 생성하기 위한 모듈을 가져옵니다.
 const { createClient } = require('@supabase/supabase-js');
 
 // 환경변수에서 Supabase URL과 API Key를 가져와 통신 클라이언트를 생성합니다.
@@ -35,7 +33,7 @@ async function autoMapNearestStations() {
         const { data: stations, error: stationErr } = await supabase.from('ocean_observations').select('station_id, station_name, latitude, longitude');
         if (stationErr) throw stationErr;
 
-        console.log(`✅ 데이터 로드 완료: 마리나 ${marinas.length}개, 관측소 ${stations.length}개`);
+        console.log(`데이터 로드 완료: 마리나 ${marinas.length}개, 관측소 ${stations.length}개`);
 
         const updates = [];
 
@@ -62,7 +60,7 @@ async function autoMapNearestStations() {
                     id: marina.id,
                     nearest_station_id: nearestStationId
                 });
-                console.log(`📍 [${marina.name}] -> 최인접 관측소 매핑: ${nearestStationId} (약 ${minDistance.toFixed(1)}km)`);
+                console.log(`[${marina.name}] -> 최인접 관측소 매핑: ${nearestStationId} (약 ${minDistance.toFixed(1)}km)`);
             }
         }
 
@@ -70,7 +68,7 @@ async function autoMapNearestStations() {
         if (updates.length > 0) {
             console.log('\n💾 데이터베이스에 안전하게 개별 업데이트를 진행합니다...');
             
-            // 배열을 돌면서 해당 마리나의 nearest_station_id 컬럼만 딱 수정합니다.
+            // 배열을 돌면서 해당 마리나의 nearest_station_id 컬럼만 수정합니다.
             for (const update of updates) {
                 const { error: updateErr } = await supabase
                     .from('marina_list')
@@ -81,11 +79,11 @@ async function autoMapNearestStations() {
                 if (updateErr) throw updateErr;
             }
             
-            console.log(`🎉 매핑 완벽하게 성공! 총 ${updates.length}개의 마리나에 인접 관측소 ID가 등록되었습니다.`);
+            console.log(`매핑 완벽하게 성공! 총 ${updates.length}개의 마리나에 인접 관측소 ID가 등록되었습니다.`);
         }
 
     } catch (err) {
-        console.error('❌ 스크립트 실행 중 에러 발생:', err.message);
+        console.error('스크립트 실행 중 에러 발생:', err.message);
     }
 }
 

@@ -64,7 +64,7 @@ app.use('/api/chat', chatRouter);
 
 // 인메모리(In-memory) 데이터 캐싱을 위한 Map 객체 초기화 (선박 위치 정보 임시 저장소)
 const shipCache = new Map();
-// 💡 추가된 코드: 챗봇 라우터(chat.js) 등 다른 파일에서도 이 캐시를 읽을 수 있게 Express 전역 변수에 담아줍니다.
+// 챗봇 라우터(chat.js) 등 다른 파일에서도 이 캐시를 읽을 수 있게 Express 전역 변수에 담아줍니다.
 app.locals.shipCache = shipCache;
 // AIS 실시간 데이터 스트리밍 서비스의 WebSocket 엔드포인트 URL 상수 정의
 const AIS_STREAM_URL = 'wss://stream.aisstream.io/v0/stream';
@@ -135,12 +135,12 @@ function connectAIS() {
 
     // 소켓 통신 중 오류 발생 시 실행되는 예외 처리 리스너
     aisSocket.on('error', (error) => {
-        console.error('❌ [AIS WebSocket Error] 스트리밍 서버 통신 오류 발생:', error.message);
+        console.error('[AIS WebSocket Error] 스트리밍 서버 통신 오류 발생:', error.message);
     });
 
     // 원격 서버 또는 네트워크 이슈로 인해 소켓 연결이 종료되었을 때 실행되는 리스너
     aisSocket.on('close', () => {
-        console.log('⚠️ [AIS WebSocket] 통신 채널이 예기치 않게 종료되었습니다. 5초 후 재연결 시퀀스를 시작합니다.');
+        console.log('[AIS WebSocket] 통신 채널이 예기치 않게 종료되었습니다. 5초 후 재연결 시퀀스를 시작합니다.');
         // 무중단 관제 서비스를 보장하기 위한 5초 지연 후 자동 재연결(Fallback) 수행
         setTimeout(connectAIS, 5000);
     });
@@ -269,7 +269,7 @@ app.get('/api/weather-data', async (req, res) => {
         // 데이터 트랜잭션 실패 시 예외 투척
         if (error) throw error;
 
-        console.log(`✅ 데이터베이스 동기화 완료: 총 ${allWeatherData.length}개 지점 기상 현황 갱신`);
+        console.log(`데이터베이스 동기화 완료: 총 ${allWeatherData.length}개 지점 기상 현황 갱신`);
         res.status(200).json(allWeatherData);
 
     } catch (err) {
@@ -436,7 +436,7 @@ app.get('/api/tidal-current', async (req, res) => {
             if (error) throw error;
         }
 
-        console.log(`✅ DB 동기화 완료: 총 ${allSeaFlowData.length}개 격자 데이터 갱신`);
+        console.log(`DB 동기화 완료: 총 ${allSeaFlowData.length}개 격자 데이터 갱신`);
         res.status(200).json(allSeaFlowData);
 
     } catch (err) {
@@ -462,23 +462,23 @@ cron.schedule('*/10 * * * *', async () => {
 
 // 2. 해양 데이터 스케줄러: 기상 데이터와 충돌을 막기 위해 2분 오프셋 지연 구동 (2, 12, 22 ...)
 cron.schedule('2-59/10 * * * *', async () => {
-    console.log('\n🌊 [Scheduler] 해양 관측 데이터 수집 배치 프로세스 실행');
+    console.log('\n[Scheduler] 해양 관측 데이터 수집 배치 프로세스 실행');
     try {
         await axios.get(`http://localhost:${PORT}/api/ocean-data`);
-        console.log('✅ [Scheduler] 해양 관측 데이터 파이프라인 갱신 완료\n');
+        console.log('[Scheduler] 해양 관측 데이터 파이프라인 갱신 완료\n');
     } catch (err) {
-        console.error('❌ [Scheduler Error] 해양 수집 프로세스 오류:', err.message);
+        console.error('[Scheduler Error] 해양 수집 프로세스 오류:', err.message);
     }
 });
 
 // 3. 조류 데이터 스케줄러: 트래픽 분산을 위해 4분 오프셋 지연 구동 (4, 14, 24 ...)
 cron.schedule('4-59/10 * * * *', async () => {
-    console.log('\n➡️ [Scheduler] 조류(Tidal) 공간 데이터 수집 배치 프로세스 실행');
+    console.log('\n[Scheduler] 조류(Tidal) 공간 데이터 수집 배치 프로세스 실행');
     try {
         await axios.get(`http://localhost:${PORT}/api/tidal-current`);
-        console.log('✅ [Scheduler] 조류 공간 데이터 파이프라인 갱신 완료\n');
+        console.log('[Scheduler] 조류 공간 데이터 파이프라인 갱신 완료\n');
     } catch (err) {
-        console.error('❌ [Scheduler Error] 조류 수집 프로세스 오류:', err.message);
+        console.error('[Scheduler Error] 조류 수집 프로세스 오류:', err.message);
     }
 });
 
@@ -507,7 +507,7 @@ app.get('/api/marinas', async (req, res) => {
 
 });
 
-// 프론트엔드에서 특정 마리나를 클릭했을 때 그 마리나의 '현재 날씨'만 물어보는 GET 라우터야
+// 프론트엔드에서 특정 마리나를 클릭했을 때 그 마리나의 '현재 날씨'만 물어보는 GET 라우터
 app.get('/api/marinas/:id/weather', async (req, res) => {
     try {
         // 클라이언트가 요청한 URL 주소에서 마리나 ID(예: MARINA_1)만 변수에 추출
@@ -520,7 +520,7 @@ app.get('/api/marinas/:id/weather', async (req, res) => {
             .eq('station_id', marinaId)
             .single();
             
-        // 에러가 났는데, 그게 '데이터가 아직 안 쌓여서 없는 에러(PGRST116)'가 아닌 진짜 서버 에러면 던진다
+        // 에러가 났는데 그게 '데이터가 아직 안 쌓여서 없는 에러(PGRST116)'가 아닌 진짜 서버 에러면 던진다
         if (error && error.code !== 'PGRST116') throw error;
         
         // 찾아온 날씨 데이터가 있으면 그거 보내주고 아직 없으면 빈 객체({})를 보내줘서 프론트 뻗는거 방지
@@ -528,9 +528,9 @@ app.get('/api/marinas/:id/weather', async (req, res) => {
         
     // 에러 잡는 구간
     } catch (err) {
-        // 백엔드 터미널에 어떤 마리나에서 날씨 에러 났는지 로그 남겨줘
+        // 백엔드 터미널에 어떤 마리나에서 날씨 에러 났는지 로그 남긴다
         console.error(`[${req.params.id}] 날씨 조회 에러:`, err.message);
-        // 프론트엔드한테는 500 에러 코드 던져서 안내해줘
+        // 프론트엔드한테는 500 에러 코드 던져서 안내해준다
         res.status(500).json({ message: '해당 마리나의 실시간 날씨 정보를 불러올 수 없습니다.' });
 
     }
@@ -660,5 +660,5 @@ app.get('/api/navigation', async (req, res) => {
 
 // 정의된 환경변수 포트를 통해 HTTP 서버 소켓 바인딩 및 구동
 app.listen(PORT, () => {
-    console.log(`🚀 [Server] Node.js 백엔드 서버가 포트 ${PORT}에서 성공적으로 구동되었습니다.`);
+    console.log(`[Server] Node.js 백엔드 서버가 포트 ${PORT}에서 성공적으로 구동되었습니다.`);
 });
