@@ -1,26 +1,17 @@
 const express = require('express');
-// 라우팅 처리를 위한 Express 라우터 객체를 생성합니다.
 const router = express.Router();
-// .env 파일에 정의된 환경변수들을 로드합니다.
 require('dotenv').config();
 
 // Supabase DB와 통신하기 위한 클라이언트 생성 함수를 가져옵니다.
 const { createClient } = require('@supabase/supabase-js');
-// OpenAI API와 통신하기 위한 모듈을 가져옵니다.
 const { OpenAI } = require('openai');
 
-// 환경변수에서 Supabase 접속 URL을 읽어옵니다.
 const supabaseUrl = process.env.SUPABASE_URL;
-// 환경변수에서 Supabase 접속 키를 읽어옵니다.
 const supabaseKey = process.env.SUPABASE_KEY;
-// URL과 키를 조합하여 Supabase 클라이언트 인스턴스를 만듭니다.
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 환경변수에 저장된 API 키를 사용하여 OpenAI 인스턴스를 생성합니다.
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-// 사용할 AI 모델을 환경변수에서 읽어오고 없으면 gpt-4o-mini를 기본으로 사용합니다.
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-// AI가 생성할 답변의 최대 토큰(글자) 수를 500으로 제한합니다.
 const OPENAI_MAX_TOKENS = Number(process.env.OPENAI_MAX_TOKENS || 500);
 
 // 두 위경도 좌표(출발지, 도착지) 사이의 직선거리를 계산해 주는 수학 함수입니다.
@@ -43,7 +34,7 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 
 // 프론트엔드에서 챗봇 메시지를 POST 방식으로 보낼 때 처리하는 메인 라우터입니다.
 router.post('/', async (req, res) => {
-    // 예상치 못한 서버 에러를 방지하기 위해 try-catch 블록으로 감쌉니다.
+    
     try {
         // 프론트엔드가 보낸 JSON 데이터 중 'message(사용자 질문)'를 꺼내옵니다.
         const { message } = req.body;
@@ -61,7 +52,7 @@ router.post('/', async (req, res) => {
 
         // 사용자의 질문 텍스트 속에 마리나 이름이 포함되어 있는지 검사하여 일치하는 마리나만 필터링합니다.
         const mentionedMarinas = allMarinas.filter(m => {
-            // 1. [한국어 검사] 공백과 '마리나' 글자를 제거해 둡니다. (예: "구산")
+            // 1. 공백과 '마리나' 글자를 제거해 둡니다. (예: "구산")
             const shortNameKo = m.name.replace(' 마리나', '').trim();
             // 질문에 한국어 원래 이름이나 줄임말이 포함되어 있는지 확인합니다.
             const isMatchKo = message.includes(m.name) || message.includes(shortNameKo);
@@ -84,7 +75,7 @@ router.post('/', async (req, res) => {
             return isMatchKo || isMatchEn;
         });
 
-        // 💡 [핵심 추가] 사용자가 말한 순서대로 마리나 배열을 정렬합니다. (먼저 말한 게 출발지, 뒤에 말한 게 도착지)
+        // 사용자가 말한 순서대로 마리나 배열을 정렬합니다. (먼저 말한 게 출발지, 뒤에 말한 게 도착지)
         mentionedMarinas.sort((a, b) => {
             // a 마리나의 이름이 사용자 질문에서 몇 번째 글자(인덱스)에 등장했는지 찾습니다.
             const indexA = message.indexOf(a.name.replace(' 마리나', '').trim());
