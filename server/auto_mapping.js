@@ -23,7 +23,7 @@ function deg2rad(deg) {
 
 // 자동 매핑 로직을 실행할 메인 함수입니다.
 async function autoMapNearestStations() {
-    console.log('🚀 마리나 - 조위관측소 자동 매핑 스크립트 시작...');
+    console.log('마리나 - 조위관측소 자동 매핑 스크립트 시작...');
 
     try {
         // 1. Supabase에서 마리나와 관측소 목록을 비동기적으로 가져옵니다.
@@ -66,7 +66,7 @@ async function autoMapNearestStations() {
 
         // 3. upsert 대신 하나씩 update 방식으로 안전하게 저장합니다.
         if (updates.length > 0) {
-            console.log('\n💾 데이터베이스에 안전하게 개별 업데이트를 진행합니다...');
+            console.log('\n데이터베이스에 안전하게 개별 업데이트를 진행합니다...');
             
             // 배열을 돌면서 해당 마리나의 nearest_station_id 컬럼만 수정합니다.
             for (const update of updates) {
@@ -75,7 +75,6 @@ async function autoMapNearestStations() {
                     .update({ nearest_station_id: update.nearest_station_id }) // 수정할 데이터
                     .eq('id', update.id); // 업데이트할 마리나 지정 조건
                 
-                // 에러가 나면 즉시 멈추고 에러를 뱉습니다.
                 if (updateErr) throw updateErr;
             }
             
