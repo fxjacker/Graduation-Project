@@ -57,12 +57,9 @@ export default function MapChat({ onNavigate }: any) {
   useEffect(() => {
     // 마우스가 화면 위를 이동할 때 발동하는 함수입니다.
     const handleMouseMove = (e: MouseEvent) => {
-      // 마우스를 꾹 누른(드래그) 상태가 아니면 그냥 무시하고 함수를 종료합니다.
       if (!isDragging) return;
       
-      // 처음 클릭했던 위치에서 마우스가 X축으로 얼만큼 움직였는지 계산합니다.
       const dx = e.clientX - dragRef.current.startX;
-      // 처음 클릭했던 위치에서 마우스가 Y축으로 얼만큼 움직였는지 계산합니다.
       const dy = e.clientY - dragRef.current.startY;
 
       // 계산된 이동 거리만큼 챗봇 창의 현재 위치(Position) 상태를 갱신합니다.
@@ -72,51 +69,37 @@ export default function MapChat({ onNavigate }: any) {
       });
     };
 
-    // 마우스 클릭을 손에서 뗐을 때 발동하여 드래그를 멈추는 함수입니다.
     const handleMouseUp = () => setIsDragging(false);
 
-    // 드래그 중일 때만 화면 전체(window)에 마우스 움직임 감지 센서를 켭니다.
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
 
-    // 컴포넌트가 꺼지거나 이펙트가 끝날 때 켜두었던 센서들을 메모리에서 깔끔하게 지웁니다.
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  // 드래그 상태가 변할 때만 이 이펙트 로직을 다시 세팅합니다.
   }, [isDragging]);
 
   // 사용자가 텍스트를 다 치고 전송 버튼(또는 엔터)을 눌렀을 때 실행되는 함수입니다.
   const handleSend = async () => {
-    // 아무것도 안 치고 빈 칸이거나 공백만 쳤다면 전송되지 않게 막습니다.
     if (!input.trim()) return;
 
-    // 내가 방금 친 텍스트를 화면 말풍선에 띄우기 위해 객체로 만듭니다.
     const userMessage = { role: 'user', content: input };
-    // 기존 대화 내역 배열의 맨 뒤에 내 메시지를 찰칵 붙여넣습니다.
     setMessages(prev => [...prev, userMessage]);
-    // 전송했으니 텍스트 입력창은 다시 깔끔하게 비워줍니다.
     setInput('');
-    // AI가 생각(로딩)하고 있다는 점 3개 애니메이션을 화면에 켭니다.
     setIsLoading(true);
 
     
     // 만약 AI가 네비게이션을 제안해서 대기 중(pendingNav)인 상태라면?
     if (pendingNav) {
-      // 대소문자 구분을 없애기 위해 사용자의 입력을 전부 소문자로 바꿉니다.
       const lowerInput = input.toLowerCase();
 
-      // 다국어 긍정 단어 리스트 (한국어, 영어, 일본어) 중 하나라도 포함되었는지 검사합니다.
       const isPositive = ['응', '어', '네', '해줘', '그래', '시작', '콜', 'yes', 'ok', 'sure', 'yep', 'はい', 'お願い', 'いいよ'].some(word => lowerInput.includes(word));
-      // 다국어 부정 단어 리스트 중 하나라도 포함되었는지 검사합니다.
       const isNegative = ['아니', '됐어', '괜찮아', '싫어', '취소', 'no', 'nope', 'cancel', 'いいえ', 'だめ', 'キャンセル', '結構'].some(word => lowerInput.includes(word));
 
-      // 사용자가 입력한 텍스트에 영어 알파벳(a-z, A-Z)이 포함되어 있는지 정규식으로 검사합니다.
       const isEnglish = /[a-zA-Z]/.test(input);
-      // 사용자가 입력한 텍스트에 일본어 문자(히라가나, 가타카나)가 포함되어 있는지 정규식으로 검사합니다.
       const isJapanese = /[ぁ-んァ-ン]/.test(input);
 
       // 챗봇이 띄워줄 긍정/부정 말풍선의 기본값을 한국어로 세팅합니다.
@@ -142,9 +125,7 @@ export default function MapChat({ onNavigate }: any) {
         if (onNavigate) onNavigate(pendingNav.start, pendingNav.end, lang);
         // 언어에 맞게 변환된 응답(positiveReply)을 화면에 말풍선으로 추가합니다.
         setMessages(prev => [...prev, { role: 'assistant', content: positiveReply }]);
-        // 대기열을 깔끔하게 비워줍니다.
         setPendingNav(null);
-        // 로딩 애니메이션을 끄고 함수를 즉시 종료합니다.
         setIsLoading(false);
         return;
       }
@@ -153,16 +134,13 @@ export default function MapChat({ onNavigate }: any) {
       if (isNegative) {
         // 언어에 맞게 변환된 취소 응답(negativeReply)을 띄워줍니다.
         setMessages(prev => [...prev, { role: 'assistant', content: negativeReply }]);
-        // 대기열을 깔끔하게 비워줍니다.
         setPendingNav(null);
-        // 로딩 끄고 종료합니다.
         setIsLoading(false);
         return;
       }
       // 긍정도 부정도 아니면 아래의 일반 AI API 통신 로직으로 넘어갑니다.
     }
 
-    // 서버와 통신하다가 터질 수 있으니 try-catch로 감쌉니다.
     try {
       // 백엔드 API 주소로 사용자의 메시지를 POST 전송합니다.
       const res = await axios.post('http://4.230.17.157:3000/api/chat', { 
@@ -171,10 +149,9 @@ export default function MapChat({ onNavigate }: any) {
       
       // 서버에서 훌륭하게 답변이 도착했다면 봇의 말풍선으로 만들어줍니다.
       const botMessage = { role: 'assistant', content: res.data.reply };
-      // 화면 채팅창 목록에 봇의 말풍선을 띄웁니다.
       setMessages(prev => [...prev, botMessage]);
 
-      // 사용자가 마리나 2개 불렀어! 길찾기 준비해!" 하고 데이터를 몰래 넘겨줬다면?
+      // 사용자가 마리나 2개 데이터를 넘겨줬다면
       if (res.data.proposedNav) {
         // 프론트엔드의 대기열(pendingNav) 상태에 그 출발지/도착지 덩어리를 쏙 저장해 둡니다.
         // 이러면 다음 턴에 사용자가 "응" 이라고 대답할 때 즉시 반응할 수 있습니다.
@@ -185,11 +162,9 @@ export default function MapChat({ onNavigate }: any) {
     } catch (err) {
       // 사용자 당황하지 않게 정중한 통신 실패 에러 말풍선을 띄워줍니다.
       setMessages(prev => [...prev, { role: 'assistant', content: '죄송합니다. 챗봇 서버와 통신이 원활하지 않습니다.' }]);
-    // 성공했든 실패했든 무조건 로딩 애니메이션은 꺼줘야 합니다.
     } finally {
       setIsLoading(false);
     }
-  // 전송 함수 괄호를 닫습니다.
   };
 
   // 본격적으로 화면(HTML/DOM)을 그리는 렌더링 구역입니다.
@@ -201,9 +176,7 @@ export default function MapChat({ onNavigate }: any) {
         // z-index 9999로 최상단에 띄우고, 위아래로 둥둥 떠다니는 애니메이션(bounce)을 줍니다.
         <div className="fixed bottom-6 right-6 z-[9999] animate-bounce">
           <button 
-            // 버튼을 누르면 isOpen 상태를 true로 바꿔서 챗봇 본체를 엽니다.
             onClick={() => setIsOpen(true)}
-            // 짙은 남색 배경, 둥근 모양, 그림자 등 테일윈드(Tailwind) CSS 스타일을 잔뜩 입힙니다.
             className="w-16 h-16 bg-[#003366] text-white rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all border-4 border-white"
           >
             {/* Lucide의 말풍선 아이콘을 가운데 그립니다. */}
@@ -217,19 +190,14 @@ export default function MapChat({ onNavigate }: any) {
       {/* 버튼을 눌러서 isOpen 상태가 true로 바뀌면, 진짜 챗봇 대화창 본체를 화면에 그립니다. */}
       {isOpen && (
         <div 
-          // 드래그 할 때마다 position.x 와 position.y 값이 바뀌며 창이 마우스를 따라다니게 만듭니다.
           style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-          // 창 크기, 반투명 효과(backdrop-blur), 둥근 모서리, 왼쪽에서 튀어나오는 등장 애니메이션을 줍니다.
           className={`fixed top-24 left-[340px] z-[9999] w-[360px] h-[600px] bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-gray-100 flex flex-col overflow-hidden ${
-            // 드래그 중일 땐 글씨가 복사(선택)되지 않게 막고, 아니면 등장 애니메이션을 줍니다.
             isDragging ? 'select-none' : 'animate-in slide-in-from-left-5 duration-200'
           }`}
         >
           {/* 파란색 상단 헤더 영역입니다. 이 부분을 잡고 마우스로 끌 수 있습니다(드래그 핸들). */}
           <div 
-            // 마우스를 꾹 누르면 아까 만든 handleMouseDown 함수가 발동합니다.
             onMouseDown={handleMouseDown}
-            // 짙은 남색 배경, 패딩, 마우스 커서가 십자가(move)로 바뀌는 스타일을 줍니다.
             className="bg-[#003366] p-5 text-white flex justify-between items-center shadow-md cursor-move select-none active:bg-blue-950 transition-colors"
           >
             {/* 헤더 왼쪽 텍스트와 반짝이 아이콘을 묶어두는 래퍼입니다. */}
@@ -264,7 +232,6 @@ export default function MapChat({ onNavigate }: any) {
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {/* 말풍선의 모서리를 둥글게 깎고 디자인합니다. */}
                 <div className={`max-w-[85%] p-3.5 rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
-                  // 내 메시지면 파란색 배경에 흰 글씨, AI면 하얀 배경에 검은 글씨를 입힙니다.
                   msg.role === 'user' 
                     ? 'bg-[#003366] text-white rounded-tr-none' 
                     : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
@@ -276,7 +243,6 @@ export default function MapChat({ onNavigate }: any) {
             ))}
             {/* 만약 AI가 답변을 생성하느라 로딩 중(isLoading이 true)이라면? */}
             {isLoading && (
-              // AI 위치(왼쪽)에 귀여운 점 3개가 튀어오르는 애니메이션 말풍선을 띄워줍니다.
               <div className="flex justify-start">
                 <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-1">
                   <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"></div>
@@ -290,23 +256,15 @@ export default function MapChat({ onNavigate }: any) {
           {/* 맨 밑에 사용자가 키보드로 텍스트를 입력하는 바텀 인풋(Input) 영역입니다. */}
           <div className="p-4 bg-white border-t border-gray-100 flex gap-2.5 items-center">
             <input 
-              // 글씨를 쓰는 input 태그입니다.
               type="text" 
-              // 입력창의 값은 우리가 선언한 input 상태 변수에 묶여(바인딩) 있습니다.
               value={input}
-              // 키보드를 칠 때마다 input 상태 변수의 값을 최신 글자로 업데이트합니다.
               onChange={(e) => setInput(e.target.value)}
-              // 엔터(Enter) 키를 치면 마우스로 전송 버튼을 누른 것과 똑같이 handleSend 함수를 발동시킵니다.
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              // 힌트 텍스트(플레이스홀더)를 적어줍니다.
               placeholder="예: 명동에서 충무 어때?"
-              // 테두리를 둥글게 하고 포커스가 가면 배경색이 하얗게 변하는 스타일을 줍니다.
               className="flex-1 text-xs p-3.5 bg-gray-50 rounded-xl outline-none border border-transparent focus:border-gray-200 focus:bg-white transition-all font-semibold text-gray-700"
             />
             <button 
-              // 텍스트를 다 치고 이 버튼을 클릭하면 서버로 데이터를 날리는 handleSend 함수가 켜집니다.
               onClick={handleSend}
-              // 남색 배경과 입체감을 주는 스타일을 입힙니다.
               className="p-3.5 bg-[#003366] text-white rounded-xl hover:bg-blue-800 active:scale-95 transition-all shadow-md"
             >
               {/* 종이비행기 모양의 전송(Send) 아이콘을 그려 넣습니다. */}

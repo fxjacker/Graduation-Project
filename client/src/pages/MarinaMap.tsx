@@ -337,7 +337,7 @@ export default function MarinaMap() {
           setNavStart(startMarina);
           // 4. AI가 넘겨준 도착지 데이터를 세팅합니다.
           setNavEnd(endMarina);
-          // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 s완료 상태를 켭니다!
+          // 5. 사용자가 파란색 [길찾기 실행] 버튼을 꾹 누른 것과 완전히 똑같이 s완료 상태를 켭니다
           setIsRouteDone(true);
           if (chatLang) {
             i18n.changeLanguage(chatLang);

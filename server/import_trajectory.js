@@ -12,7 +12,7 @@ async function importTrajectoryData() {
 
     try {
         await client.connect();
-        console.log('✅ Supabase DB 연결 성공!');
+        console.log('Supabase DB 연결 성공!');
 
         await client.query('TRUNCATE TABLE ship_trajectory;');
         console.log('🧹 기존 데이터 초기화 완료!');
@@ -30,7 +30,7 @@ async function importTrajectoryData() {
         console.log(`📄 CSV 파일 읽기 완료. 총 ${results.length}개의 어선 데이터를 DB에 삽입합니다...`);
 
         if (!results[0]['공간정보']) {
-            console.error('\n🚨 [에러] CSV 컬럼을 찾을 수 없습니다! 파일을 UTF-8로 저장해주세요.\n');
+            console.error('\n[에러] CSV 컬럼을 찾을 수 없습니다! 파일을 UTF-8로 저장해주세요.\n');
             process.exit(1);
         }
 

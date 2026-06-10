@@ -1,7 +1,5 @@
-// 환경변수 로드 및 초기화
 require('dotenv').config();
 
-// routes 폴더에 분리해둔 AI 챗봇 라우터 파일을 불러옵니다.
 const chatRouter = require('./routes/chat');
 // Express 프레임워크 및 미들웨어 모듈 로드
 const express = require('express');
@@ -15,7 +13,6 @@ const cron = require('node-cron');
 const WebSocket = require('ws');
 
 
-// 애플리케이션 인스턴스 생성 및 포트 설정 (환경변수 우선 적용)
 const app = express();
 // 프론트엔드에서 '/api/chat' 경로로 들어오는 모든 요청을 chatRouter로 보냅니다.
 // 클라우드 호스팅 환경의 동적 포트 할당을 지원하기 위한 조건부 포트 바인딩
@@ -44,7 +41,6 @@ app.use(cors(corsOptions));
 // 프론트엔드에서 '/api/chat' 경로로 들어오는 모든 요청을 chatRouter로 보냅니다.
 app.use(express.json());
 
-//app.use('/api/chat', chatRouter);
 // API 요청 제한(Rate Limiting) 설정 (DDoS 및 과도한 트래픽 인입 방지)
 const apiLimiter = rateLimit({
     // 제한 윈도우 크기를 1분(60,000 밀리초)으로 설정
@@ -82,13 +78,7 @@ function connectAIS() {
     // 소켓 통신 채널이 개방되었을 때 실행되는 이벤트 리스너
     aisSocket.on('open', () => {
         // 대한민국 영해를 포괄하는 2차원 공간 경계 상자(Bounding Box) 정의
-        //const boundingBoxes = [[[32.0, 124.0], [39.0, 132.0]]];
-        //const boundingBoxes = [[[-90, -180], [90, 180]]];
-        //const boundingBoxes = [[[30.0, 120.0], [43.0, 135.0]]];
         const boundingBoxes = [[[32.0, 124.0], [39.0, 132.0]]];
-        //const boundingBoxes = [[[20.0, 115.0], [45.0, 145.0]]];
-        //const boundingBoxes = [[[32.0, 124.0], [39.0, 132.0]]];
-        //const boundingBoxes = [[[30.0, 120.0], [43.0, 135.0]]];
         // 불필요한 패킷을 필터링하고 위치 보고(PositionReport) 데이터만 수신하도록 설정
         const filterMessageTypes = ["PositionReport"];
 
@@ -101,7 +91,7 @@ function connectAIS() {
 
         // 구성된 JSON 페이로드를 직렬화하여 서버로 전송 (구독 활성화)
         aisSocket.send(JSON.stringify(subscriptionMessage));
-        console.log('✅ [AIS WebSocket] 대한민국 해역 실시간 선박 데이터 스트리밍 연결 완료');
+        console.log('[AIS WebSocket] 대한민국 해역 실시간 선박 데이터 스트리밍 연결 완료');
     });
 
     // 스트리밍 서버로부터 메시지를 수신할 때 트리거되는 이벤트 리스너
@@ -449,18 +439,18 @@ app.get('/api/tidal-current', async (req, res) => {
 // 백그라운드 스케줄러(Cron Jobs) 구성 (동시 다발적 API 요청으로 인한 병목 회피 구조)
 // ==================================================================
 
-// 1. 기상 데이터 스케줄러: 매 시 정각 기준 10분 주기 구동 (0, 10, 20 ...)
+// 1. 기상 데이터 스케줄러: 매 시 정각 기준 10분 주기 구동
 cron.schedule('*/10 * * * *', async () => {
     console.log('\n⏰ [Scheduler] 기상 데이터 수집 배치 프로세스 실행');
     try {
         await axios.get(`http://localhost:${PORT}/api/weather-data`);
-        console.log('✅ [Scheduler] 기상 데이터 파이프라인 갱신 완료\n');
+        console.log('[Scheduler] 기상 데이터 파이프라인 갱신 완료\n');
     } catch (err) {
-        console.error('❌ [Scheduler Error] 기상 수집 프로세스 오류:', err.message);
+        console.error('[Scheduler Error] 기상 수집 프로세스 오류:', err.message);
     }
 });
 
-// 2. 해양 데이터 스케줄러: 기상 데이터와 충돌을 막기 위해 2분 오프셋 지연 구동 (2, 12, 22 ...)
+// 2. 해양 데이터 스케줄러: 기상 데이터와 충돌을 막기 위해 2분 오프셋 지연 구동
 cron.schedule('2-59/10 * * * *', async () => {
     console.log('\n[Scheduler] 해양 관측 데이터 수집 배치 프로세스 실행');
     try {
@@ -471,7 +461,7 @@ cron.schedule('2-59/10 * * * *', async () => {
     }
 });
 
-// 3. 조류 데이터 스케줄러: 트래픽 분산을 위해 4분 오프셋 지연 구동 (4, 14, 24 ...)
+// 3. 조류 데이터 스케줄러: 트래픽 분산을 위해 4분 오프셋 지연 구동
 cron.schedule('4-59/10 * * * *', async () => {
     console.log('\n[Scheduler] 조류(Tidal) 공간 데이터 수집 배치 프로세스 실행');
     try {
@@ -496,11 +486,8 @@ app.get('/api/marinas', async (req, res) => {
         
         res.status(200).json(marinas);
         
-    // try문 안에서 에러가 터지면 여기서 잡아채서 처리
     } catch (err) {
-        // 서버 콘솔창에 어떤 에러인지 빨간불로 띄워주고
         console.error('마리나 목록 조회 에러:', err.message);
-        // 프론트엔드한테는 500(서버 터짐) 상태 코드랑 친절한 한국어 에러 메시지를 보내줘
         res.status(500).json({ message: '서버에서 마리나 데이터를 불러오는데 실패했습니다.' });
 
     }
@@ -520,17 +507,13 @@ app.get('/api/marinas/:id/weather', async (req, res) => {
             .eq('station_id', marinaId)
             .single();
             
-        // 에러가 났는데 그게 '데이터가 아직 안 쌓여서 없는 에러(PGRST116)'가 아닌 진짜 서버 에러면 던진다
         if (error && error.code !== 'PGRST116') throw error;
         
         // 찾아온 날씨 데이터가 있으면 그거 보내주고 아직 없으면 빈 객체({})를 보내줘서 프론트 뻗는거 방지
         res.status(200).json(weather || {});
         
-    // 에러 잡는 구간
     } catch (err) {
-        // 백엔드 터미널에 어떤 마리나에서 날씨 에러 났는지 로그 남긴다
         console.error(`[${req.params.id}] 날씨 조회 에러:`, err.message);
-        // 프론트엔드한테는 500 에러 코드 던져서 안내해준다
         res.status(500).json({ message: '해당 마리나의 실시간 날씨 정보를 불러올 수 없습니다.' });
 
     }
@@ -550,18 +533,15 @@ app.get('/api/ocean-stations/:id', async (req, res) => {
             .eq('station_id', stationId)
             .single();
             
-        // 진짜 서버 통신 에러면 catch로 던지기
+        
         if (error && error.code !== 'PGRST116') throw error;
         
-        // 데이터 성공적으로 프론트에 쏴주기
         res.status(200).json(oceanData || {});
 
 
     // 에러 처리 구간
     } catch (err) {
-        // 에러 로그 찍기
         console.error(`[${req.params.id}] 수심 데이터 조회 에러:`, err.message);
-        // 프론트에 500 에러 응답하기
         res.status(500).json({ message: '해양 관측소 데이터를 불러올 수 없습니다.' });
     
     }
@@ -634,7 +614,7 @@ app.get('/api/navigation', async (req, res) => {
             end_lon: parseFloat(endLon)
         });
 
-        // Supabase DB 함수 실행 중 에러가 발생했다면 catch 블록으로 에러를 냅다 던져버립니다.
+        // Supabase DB 함수 실행 중 에러가 발생했다면 catch 블록으로 에러를 던져버립니다.
         if (error) throw error;
 
         // 만약 경로를 찾지 못해 데이터가 null이거나 비어있다면 육지에 완전히 막혔거나 데이터가 단절된 지역입니다.
@@ -651,9 +631,7 @@ app.get('/api/navigation', async (req, res) => {
 
     // try 블록 안에서 터진 모든 에러를 여기서 안전하게 잡아서 처리합니다.
     } catch (err) {
-        // 백엔드 터미널 콘솔에 어떤 에러가 발생했는지 상세히 기록하여 디버깅을 돕습니다.
         console.error('해상 네비게이션 경로 탐색 중 에러 발생:', err.message);
-        // 프론트엔드에게는 HTTP 500(서버 에러) 코드와 함께 상황을 알립니다.
         res.status(500).json({ message: '경로 탐색 서버에서 오류가 발생했습니다.' });
     }
 });
