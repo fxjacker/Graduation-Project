@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Polyline, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
-// 💡 상단에서 supabase를 고정으로 불러옵니다. (경로는 프로젝트에 맞게 확인해주세요)
+// 상단에서 supabase를 고정으로 불러옵니다.
 import { supabase } from '../../supabaseClient'; 
 
 export default function NavigationLayer({ startNode, endNode, onAnalysis }: any) {
@@ -15,7 +15,7 @@ export default function NavigationLayer({ startNode, endNode, onAnalysis }: any)
       return;
     }
 
-    // 💡 [핵심 방어 로직] DB에서 길을 못 찾으면 실행될 예전 '직선 그리기' 함수입니다.
+    // DB에서 길을 못 찾으면 실행될 예전 '직선 그리기' 함수입니다.
     const generateFallbackRoute = () => {
       console.warn("해상 경로가 끊겨있어 직선(Plan B) 경로로 대체합니다.");
       const route: [number, number][] = [];

@@ -110,7 +110,7 @@ export default function MarinaMap() {
   const [mapConfig, setMapConfig] = useState({ center: [36.5, 127.5] as [number, number], zoom: 7 });
   const [minDepth, setMinDepth] = useState(0);
 
-  // 🌟 [검색 기능 복구 완료] 실시간 검색어 관리를 위한 리액트 State 탑재
+  // 실시간 검색어 관리를 위한 리액트 State 탑재
   const [searchTerm, setSearchTerm] = useState('');
 
   const [isNavMode, setIsNavMode] = useState(false); 
@@ -131,7 +131,7 @@ export default function MarinaMap() {
     fetchMarinas();
   }, []);
 
-  // 🌟 [검색 필터 병합 알고리즘 가동] 팀원의 최소 수심 필터 + 우리의 타이핑 검색어 실시간 동시 연동
+  // 팀원의 최소 수심 필터 + 우리의 타이핑 검색어 실시간 동시 연동
   const filteredMarinas = useMemo(() => {
     return marinas.filter(m => {
       // 1. 수심 조건 검사: 마리나의 수심이 사용자가 설정한 최소 수심(minDepth) 이상인지 확인합니다.
@@ -141,7 +141,7 @@ export default function MarinaMap() {
       // 검색 시 대소문자 구분을 없애기 위해 한국어 이름과 주소를 모두 소문자로 변환해 둡니다.
       const targetName = (m.name || '').toLowerCase();
       const targetAddress = (m.address || '').toLowerCase();
-      // 💡 [핵심 추가] DB에 있는 영어 이름(english_name)도 검색할 수 있도록 소문자로 변환해 가져옵니다. (없으면 빈 문자열)
+      // DB에 있는 영어 이름(english_name)도 검색할 수 있도록 소문자로 변환해 가져옵니다. (없으면 빈 문자열)
       const targetEnglishName = (m.english_name || '').toLowerCase();
       
       // 사용자가 방금 타이핑한 검색어(searchTerm)도 소문자로 변환합니다. (예: "Bae" -> "bae")
@@ -268,7 +268,7 @@ export default function MarinaMap() {
           <button onClick={() => setIsSidebarOpen(false)}><X size={20} /></button>
         </div>
         <div className="p-4 bg-gray-50 border-b space-y-4">
-          {/* 🌟 [검색 상자 바인딩 복구 완료] 가짜 입력창에서 진짜 가동되는 인풋 제어 장치로 튜닝 */}
+          {/* [검색 상자 바인딩 복구 완료] 가짜 입력창에서 진짜 가동되는 인풋 제어 장치로 튜닝 */}
           <div className="relative group">
             <input 
               type="text" 

@@ -1,7 +1,7 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Waves, X, Navigation, Clock, MapPin, Thermometer, Wind, AlertTriangle } from 'lucide-react';
 
-// [핵심 추가] 하버사인 공식: 두 좌표(위도, 경도) 사이의 실제 거리(km) 계산
+// 하버사인 공식: 두 좌표(위도, 경도) 사이의 실제 거리(km) 계산
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371; // 지구 반지름 (km)
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -13,7 +13,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c; 
 };
 
-// 💡 부모 컴포넌트에서 넘겨준 lang 파라미터를 받습니다 (기본값은 'ko')
+// 부모 컴포넌트에서 넘겨준 lang 파라미터를 받습니다 (기본값은 'ko')
 export default function RouteAnalysisChart({ data, onClose, startNode, endNode, lang = 'ko' }: any) {
   if (!data || data.length === 0 || !startNode || !endNode) return null;
 
@@ -32,7 +32,7 @@ export default function RouteAnalysisChart({ data, onClose, startNode, endNode, 
   const hours = Math.floor(travelTimeMinutes / 60);
   const minutes = travelTimeMinutes % 60;
 
-  // 🌐 [다국어 지원 사전] lang 값에 따라 텍스트를 다르게 꺼내옵니다.
+  // lang 값에 따라 텍스트를 다르게 꺼내옵니다.
   const translations: Record<string, any> = {
     ko: {
       distLabel: "실제 항로 거리",
@@ -62,13 +62,13 @@ export default function RouteAnalysisChart({ data, onClose, startNode, endNode, 
 
   // 선택된 언어의 번역 데이터를 꺼냅니다. (안전하게 fallback으로 'ko' 사용)
   const t = translations[lang] || translations['ko'];
-  // 💡 [핵심 추가] 언어에 따라 마리나 이름을 바꿔주는 마법의 함수!
+  // 언어에 따라 마리나 이름을 바꿔주는 마법의 함수
   const getMarinaName = (node: any) => {
-    // 한국어가 아니고(영어 or 일본어), DB에 english_name이 존재한다면 영어 이름을 반환!
+    // 한국어가 아니고(영어 or 일본어), DB에 english_name이 존재한다면 영어 이름을 반환
     if (lang !== 'ko' && node.english_name) {
       return node.english_name;
     }
-    // 그 외의 경우(한국어이거나 영어 이름이 DB에 없을 때)는 그냥 원래 한국어 이름 반환!
+    // 그 외의 경우(한국어이거나 영어 이름이 DB에 없을 때)는 그냥 원래 한국어 이름 반환
     return node.name;
   };
   return (

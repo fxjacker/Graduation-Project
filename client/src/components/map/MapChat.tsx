@@ -1,11 +1,8 @@
-// React의 핵심 상태 관리(useState), 참조(useRef), 생명주기(useEffect) 훅을 불러옵니다.
 import { useState, useRef, useEffect } from 'react';
-// UI 디자인을 위한 Lucide 아이콘(전송, 말풍선, 닫기, 반짝임)들을 불러옵니다.
 import { Send, MessageSquare, X, Sparkles } from 'lucide-react';
-// 백엔드와 HTTP 통신을 하기 위해 axios 라이브러리를 불러옵니다.
 import axios from 'axios';
 
-// 💡 [핵심] 부모 컴포넌트(Map)에서 선을 그릴 수 있도록 onNavigate 함수를 Props로 받습니다.
+// 부모 컴포넌트(Map)에서 선을 그릴 수 있도록 onNavigate 함수를 Props로 받습니다.
 export default function MapChat({ onNavigate }: any) {
   // 챗봇 창이 열려있는지 닫혀있는지 관리하는 상태 변수입니다.
   const [isOpen, setIsOpen] = useState(false);
@@ -20,7 +17,7 @@ export default function MapChat({ onNavigate }: any) {
   // 채팅창 내용이 길어지면 자동으로 맨 밑으로 스크롤을 내리기 위한 돔(DOM) 참조 변수입니다.
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 💡 [핵심] AI가 길찾기를 제안했을 때, 사용자의 수락을 기다리며 임시로 저장해두는 상태 변수입니다.
+  // AI가 길찾기를 제안했을 때, 사용자의 수락을 기다리며 임시로 저장해두는 상태 변수입니다.
   const [pendingNav, setPendingNav] = useState<any>(null);
 
   // 챗봇 창의 실시간 X, Y 픽셀 위치를 저장하는 상태 변수입니다. (드래그 용도)
@@ -92,7 +89,7 @@ export default function MapChat({ onNavigate }: any) {
   // 드래그 상태가 변할 때만 이 이펙트 로직을 다시 세팅합니다.
   }, [isDragging]);
 
-  // 💡 [핵심] 사용자가 텍스트를 다 치고 '전송' 버튼(또는 엔터)을 눌렀을 때 실행되는 함수입니다.
+  // 사용자가 텍스트를 다 치고 전송 버튼(또는 엔터)을 눌렀을 때 실행되는 함수입니다.
   const handleSend = async () => {
     // 아무것도 안 치고 빈 칸이거나 공백만 쳤다면 전송되지 않게 막습니다.
     if (!input.trim()) return;
@@ -107,7 +104,7 @@ export default function MapChat({ onNavigate }: any) {
     setIsLoading(true);
 
     
-    // 💡 [초강력 예외 처리] 만약 AI가 네비게이션을 제안해서 대기 중(pendingNav)인 상태라면?
+    // 만약 AI가 네비게이션을 제안해서 대기 중(pendingNav)인 상태라면?
     if (pendingNav) {
       // 대소문자 구분을 없애기 위해 사용자의 입력을 전부 소문자로 바꿉니다.
       const lowerInput = input.toLowerCase();
@@ -177,7 +174,7 @@ export default function MapChat({ onNavigate }: any) {
       // 화면 채팅창 목록에 봇의 말풍선을 띄웁니다.
       setMessages(prev => [...prev, botMessage]);
 
-      // 💡 [핵심] 서버가 "야! 사용자가 마리나 2개 불렀어! 길찾기 준비해!" 하고 데이터를 몰래 넘겨줬다면?
+      // 사용자가 마리나 2개 불렀어! 길찾기 준비해!" 하고 데이터를 몰래 넘겨줬다면?
       if (res.data.proposedNav) {
         // 프론트엔드의 대기열(pendingNav) 상태에 그 출발지/도착지 덩어리를 쏙 저장해 둡니다.
         // 이러면 다음 턴에 사용자가 "응" 이라고 대답할 때 즉시 반응할 수 있습니다.
@@ -319,7 +316,7 @@ export default function MapChat({ onNavigate }: any) {
         </div>
       )}
     </>
-  // 컴포넌트 JSX 반환 블록을 닫아줍니다.
+  
   );
-// MapChat 메인 함수 블록을 닫아줍니다.
+
 }

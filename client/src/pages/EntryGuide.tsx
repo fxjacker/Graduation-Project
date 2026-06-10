@@ -6,7 +6,7 @@ export default function EntryGuide() {
   const { t } = useTranslation('guide');
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
-  // 🚩 [BACKEND] 정윤석님: 유저 진행도 데이터 로드
+  // [BACKEND] : 유저 진행도 데이터 로드
   useEffect(() => {
     // axios.get('/api/user/progress').then(res => setCompletedSteps(res.data.steps));
   }, []);
@@ -16,7 +16,7 @@ export default function EntryGuide() {
       ? completedSteps.filter(stepId => stepId !== id) 
       : [...completedSteps, id];
     setCompletedSteps(newSteps);
-    // 🚩 [BACKEND] 정윤석님: 진행도 실시간 저장
+    // [BACKEND] : 진행도 실시간 저장
     // axios.patch('/api/user/progress', { steps: newSteps });
   };
 
