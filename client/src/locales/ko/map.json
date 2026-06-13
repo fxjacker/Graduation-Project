@@ -16,6 +16,22 @@
   "tide_chart_title": "오늘의 조위 변동",
   "updated_at": "업데이트 시간",
 
+  "nav_start_label": "네비게이션 시작",
+  "nav_end_label": "네비게이션 종료",
+  "select_start": "출발지 선택",
+  "select_dest": "도착지 선택",
+  "run_navigation": "길찾기 실행",
+  "filter_depth": "수심 필터",
+
+  "distLabel": "실제 항로 거리",
+  "timeLabel": "예상 소요 시간",
+  "windLabel": "현재 풍속",
+  "tempLabel": "수온/기온",
+  "safety_briefing_title": "Safety Briefing",
+  "hours_unit": "시간",
+  "minutes_unit": "분",
+  "briefing_text": "항로 거리 {{distance}}km 기준, 안전 속도 유지를 권고합니다. {{time}} 내 목적지 도착 예정입니다.",
+
   "MARINA_1": "사곡 마리나",
   "MARINA_10": "백운포 마리나",
   "MARINA_11": "하동 마리나",

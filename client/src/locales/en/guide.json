@@ -4,25 +4,46 @@
   "step": "Step",
   "status_done": "Done",
   "btn_submit_report": "Submit Final Report",
+
   "step1_title": "Pre-arrival Reporting",
   "step1_desc": "Report 24 hours before entering territorial waters",
   "step1_danger": "Non-reporting may be seen as intrusion",
+  "step1_site_name": "관세청 유니패스",
+  "step1_url": "https://unipass.customs.go.kr",
+
   "step2_title": "Quarantine Declaration",
   "step2_desc": "Hoisting Q-flag & waiting for approval",
   "step2_danger": "Watch for health law violations",
+  "step2_site_name": "질병관리청 Q-CODE",
+  "step2_url": "https://qcode.kdca.go.kr",
+
   "step3_title": "Immigration Clearance",
   "step3_desc": "Passport and visa inspection for crew",
   "step3_danger": "Prevention of illegal entry",
+  "step3_site_name": "법무부 출입국",
+  "step3_url": "https://www.immigration.go.kr",
+
   "step4_title": "Customs Declaration",
   "step4_desc": "Declaring vessel cargo and personal items",
   "step4_danger": "Preventing customs law violations",
+  "step4_site_name": "관세청 유니패스",
+  "step4_url": "https://unipass.customs.go.kr",
+
   "step5_title": "Berth Reservation & Entry",
   "step5_desc": "Communication with control center",
   "step5_danger": "Watch for collisions and safety",
+  "step5_site_name": "해양수산부 해양레저정보",
+  "step5_url": "https://www.marina.or.kr",
+
   "step6_title": "Administrative Registration",
   "step6_desc": "Visiting office and submitting documents",
   "step6_danger": "Compliance with port facility rules",
+  "step6_site_name": "정부24 민원신청",
+  "step6_url": "https://www.gov.kr",
+
   "step7_title": "Final Local Regulations",
   "step7_desc": "Checking speed limits and no-fishing zones",
-  "step7_danger": "Blocking unintentional illegal acts"
+  "step7_danger": "Blocking unintentional illegal acts",
+  "step7_site_name": "국가법령정보센터",
+  "step7_url": "https://www.law.go.kr"
 }

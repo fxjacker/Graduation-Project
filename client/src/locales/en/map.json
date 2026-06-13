@@ -16,6 +16,22 @@
   "tide_chart_title": "Today's Tide Variation",
   "updated_at": "Updated",
 
+  "nav_start_label": "Start Navigation",
+  "nav_end_label": "End Navigation",
+  "select_start": "Select Origin",
+  "select_dest": "Select Destination",
+  "run_navigation": "Find Route",
+  "filter_depth": "Depth Filter",
+
+  "distLabel": "Actual Distance",
+  "timeLabel": "Estimated Time",
+  "windLabel": "Wind Speed",
+  "tempLabel": "Water/Air Temp",
+  "safety_briefing_title": "Safety Briefing",
+  "hours_unit": "h",
+  "minutes_unit": "m",
+  "briefing_text": "Based on the route distance of {{distance}}km, maintaining a safe speed is recommended. Estimated arrival in {{time}}.",
+
   "MARINA_1": "Sagok Marina",
   "MARINA_10": "Baegunpo Marina",
   "MARINA_11": "Hadong Marina",
